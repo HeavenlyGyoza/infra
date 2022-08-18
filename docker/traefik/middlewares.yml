@@ -45,4 +45,4 @@ http:
         trustForwardHeader: true
         authResponseHeaders:
           - "Remote-User"
-          - "Remote-Groups"    
+          - "Remote-Groups"
