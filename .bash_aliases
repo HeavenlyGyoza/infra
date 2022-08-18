@@ -17,6 +17,8 @@ alias .5='cd ../../../../..'
 
 # SYSTEM
 alias sysupdate='sudo apt update && apt upgrade'
+alias shutdown='sudo shutdown -h now'
+alias reboot='sudo reboot'
 
 # SYSTEM SERVICES
 alias sshstart='ctlstart ssh'
