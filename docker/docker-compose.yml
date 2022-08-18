@@ -29,7 +29,7 @@ services:
       - --api.dashboard=true
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
-      - --log.level=DEBUG # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --log.level=info # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
       - --accessLog=true
       - --accessLog.filePath=/traefik.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
@@ -56,7 +56,7 @@ services:
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # To delay DNS check and reduce LE hitrate
     networks:
       t2_proxy:
-        ipv4_address: 192.168.90.10
+        ipv4_address: 192.168.90.1
     ports:
       - target: 80
         published: 80
@@ -74,7 +74,7 @@ services:
       - $DOCKERDIR/appdata/traefik2/rules:/rules # file provider directory
       - /var/run/docker.sock:/var/run/docker.sock:ro #TODO Socket Proxy
       - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # cert location
-      - $DOCKERDIR/logs/cloudserver/traefik.log:/traefik.log # for fail2ban
+      - $DOCKERDIR/logs/server/traefik.log:/traefik.log # for fail2ban
       - $DOCKERDIR/shared:/shared
     security_opt:
       - no-new-privileges:true
@@ -108,7 +108,8 @@ services:
     image: authelia/authelia
     container_name: authelia
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.2
     #ports:
     volumes:
       - $DOCKERDIR/appdata/authelia:/config
@@ -135,7 +136,8 @@ services:
     image: portainer/portainer-ce
     command: -H unix:///var/run/docker.sock
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.3
     #ports:
     #  - 9000:9000
     volumes:
@@ -163,7 +165,8 @@ services:
     image: linuxserver/heimdall
     container_name: heimdall
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.4
    # ports:
     #  - "$HEIMDALL_PORT:80" # 80 to 82 already taken by other services
     # - "444:443" # 443 used by Traefik/Nginx Proxy Manager. Disabled because we will put Heimdall behind proxy.
@@ -206,7 +209,8 @@ services:
     image: amir20/dozzle
     container_name: dozzle
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.5
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -247,10 +251,12 @@ services:
     container_name: qbittorrent
     image: linuxserver/qbittorrent
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.6
     volumes:
-      - $DOCKERDIR/appdata/qbittorent/confgi:/config
-      - $STORAGEDIR/downloads:/data/downloads
+      - $DOCKERDIR/appdata/qbittorent/config:/config
+      - $DATADIR/downloads:/data/downloads
+      - $DATADIR/torrents:/data/torrents
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -276,18 +282,19 @@ services:
     image: linuxserver/jellyfin
     container_name: jellyfin
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.7
     #ports:
     #  - 8096:8096
     volumes:
       - $DOCKERDIR/appdata/jellyfin:/config
-      - $STORAGEDIR/media/movies:/data/movies
-      - $STORAGEDIR/media/series:/data/series
-      - $STORAGEDIR/media/anime:/data/anime
-      - $STORAGEDIR/media/manga:/data/manga
-      - $STORAGEDIR/media/music:/data/music
-      - $STORAGEDIR/media/books:/data/books
-      - $STORAGEDIR/media/comics:/data/comics
+      - $DATADIR/media/movies:/data/movies
+      - $DATADIR/media/series:/data/series
+      - $DATADIR/media/anime:/data/anime
+      - $DATADIR/media/manga:/data/manga
+      - $DATADIR/media/music:/data/music
+      - $DATADIR/media/books:/data/books
+      - $DATADIR/media/comics:/data/comics
       - $DATADIR/temp/appdata/jellyfin/metadata:/config/metadata
     security_opt:
       - no-new-privileges:true
@@ -302,21 +309,50 @@ services:
       - "traefik.http.routers.jellyfin-rtr.entrypoints=https"
       - "traefik.http.routers.jellyfin-rtr.rule=Host(`jellyfin.$DOMAINNAME_CLOUD_SERVER`)"
       ## Middlewares
-      - "traefik.http.routers.jellyfin-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.jellyfin-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.jellyfin-rtr.service=jellyfin-svc"
       - "traefik.http.services.jellyfin-svc.loadbalancer.server.port=8096"
+
+# Prowlarr - Torrent proxy
+  prowlarr:
+    image: linuxserver/prowlarr:develop
+    container_name: prowlarr
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.8
+    volumes:
+      - $DOCKERDIR/appdata/prowlarr:/config
+      - "/etc/localtime:/etc/localtime:ro"
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.prowlarr-rtr.entrypoints=https"
+      - "traefik.http.routers.prowlarr-rtr.rule=Host(`prowlarr.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.prowlarr-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.prowlarr-rtr.service=prowlarr-svc"
+      - "traefik.http.services.prowlarr-svc.loadbalancer.server.port=9696"
 
 # Radarr - Movie management
   radarr:
     image: linuxserver/radarr
     container_name: radarr
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.9
     volumes:
       - $DOCKERDIR/appdata/radarr:/config
-      - $STORAGEDIR/downloads:/data/downloads
-      - $STORAGEDIR/media/movies:/movies
+      - $DATADIR/downloads:/data/downloads
+      - $DATADIR/media/movies:/movies
       - "/etc/localtime:/etc/localtime:ro"
     security_opt:
       - no-new-privileges:true
@@ -340,7 +376,8 @@ services:
     image: linuxserver/sonarr
     container_name: sonarr
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.10
     volumes:
       - $DOCKERDIR/appdata/sonarr:/config
       - $DATADIR/downloads:/data/downloads
@@ -367,7 +404,8 @@ services:
     image: linuxserver/bazarr:latest
     container_name: bazarr
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.11
     volumes:
       - $DOCKERDIR/appdata/bazarr:/config
       - $DATADIR/media:/data/media
@@ -392,9 +430,13 @@ services:
   lidarr:
     image: linuxserver/lidarr:latest
     container_name: lidarr
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.12
     volumes:
       - $DOCKERDIR/appdata/lidarr:/config
-      - $STORAGEDIR/media/music:/music
+      - $DATADIR/media/music:/music
+      - $DATADIR/downloads:/data/downloads
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -412,33 +454,13 @@ services:
       - "traefik.http.routers.lidarr-rtr.service=lidarr-svc"
       - "traefik.http.services.lidarr-svc.loadbalancer.server.port=8686"
 
-#Prowlarr - Torrent proxy
-  prowlarr:
-    image: linuxserver/prowlarr:develop
-    container_name: prowlarr
-    volumes:
-      - $DOCKERDIR/appdata/prowlarr:/config
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.prowlarr-rtr.entrypoints=https"
-      - "traefik.http.routers.prowlarr-rtr.rule=Host(`prowlarr.$DOMAINNAME_CLOUD_SERVER`)"
-      ## Middlewares
-      - "traefik.http.routers.prowlarr-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.prowlarr-rtr.service=prowlarr-svc"
-      - "traefik.http.services.prowlarr-svc.loadbalancer.server.port=9696"
-
-#Readarr - Book management
+# Readarr - Book management
   readarr:
     image: linuxserver/readarr:develop
     container_name: readarr
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.13
     volumes:
       - $DOCKERDIR/appdata/readarr:/config
     security_opt:
@@ -462,6 +484,9 @@ services:
   pihole:
     image: pihole/pihole
     container_name: pihole
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.14
     ports:
     - '53:53/tcp'
     - '53:53/udp'
@@ -555,7 +580,8 @@ services:
     image: linuxserver/smokeping
     container_name: smokeping
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.15
     volumes:
       - $DOCKERDIR/appdata/smokeping:/config
       - $DOCKERDIR/appdata/smokeping:/data
@@ -607,6 +633,9 @@ services:
   paperless-ngx:
     image: linuxserver/paperless-ngx
     container_name: paperless-ngx
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.16
     volumes:
       - $DOCKERDIR/appdata/paperless:/config
       - $DATADIR/paperless:/data
@@ -792,39 +821,13 @@ services:
       - "traefik.http.routers.calibre-web-rtr.service=calibre-web-svc"
       - "traefik.http.services.calibre-web-svc.loadbalancer.server.port=8083"
 
-# Flame - Application dashboard
-  flame:
-    image: pawelmalak/flame
-    container_name: flame
-    networks:
-      - t2_proxy
-    volumes:
-      - $DOCKERDIR/appdata/flame:/app/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: always
-    security_opt:
-      - no-new-privileges:true
-    environment:
-      - PASSWORD=PASSWORD  
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.flame-rtr.entrypoints=https"
-      #- "traefik.http.routers.flame-rtr.rule=Host(`$DOMAINNAME_CLOUD_SERVER`,`www.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.flame-rtr.rule=Host(`flame.$DOMAINNAME_CLOUD_SERVER`)"      
-      - "traefik.http.routers.flame-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.flame-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.flame-rtr.service=flame-svc"
-      - "traefik.http.services.flame-svc.loadbalancer.server.port=5005"
-
 # Filezilla - Secure file transfer application
   filezilla:
     image: linuxserver/filezilla
     container_name: filezilla
     networks:
-      - t2_proxy
+      t2_proxy:
+        ipv4_address: 192.168.90.17
     volumes:
       - $DOCKERDIR/appdata/filezilla:/config
     restart: unless-stopped
@@ -845,3 +848,27 @@ services:
       ## HTTP Services
       - "traefik.http.routers.filezilla-rtr.service=filezilla-svc"
       - "traefik.http.services.filezilla-svc.loadbalancer.server.port=3000"
+
+# Guacamole - Clientless remote desktop
+  guacamole:
+    image: oznu/guacamole
+    container_name: guacamole
+    networks:
+      t2_proxy:
+        ipv4_address: 192.168.90.18
+    volumes:
+      - $DOCKERDIR/appdata/guacamole:/config
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.guacamole-rtr.entrypoints=https"
+      - "traefik.http.routers.guacamole-rtr.rule=Host(`guacamole.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.guacamole-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.guacamole-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
+      - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
