@@ -29,7 +29,7 @@ services:
       - --api.dashboard=true
       # - --serversTransport.insecureSkipVerify=true
       - --log=true
-      - --log.level=info # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --log.level=INFO # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
       - --accessLog=true
       - --accessLog.filePath=/traefik.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
@@ -55,8 +55,9 @@ services:
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # To delay DNS check and reduce LE hitrate
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.1
+      - t2_proxy
+      #t2_proxy:
+      #  ipv4_address: 192.168.90.100
     ports:
       - target: 80
         published: 80
@@ -108,9 +109,9 @@ services:
     image: authelia/authelia
     container_name: authelia
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.2
-    #ports:
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.101
     volumes:
       - $DOCKERDIR/appdata/authelia:/config
     security_opt:
@@ -136,10 +137,9 @@ services:
     image: portainer/portainer-ce
     command: -H unix:///var/run/docker.sock
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.3
-    #ports:
-    #  - 9000:9000
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.102
     volumes:
       - $DOCKERDIR/appdata/portainer/data:/data
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -165,11 +165,9 @@ services:
     image: linuxserver/heimdall
     container_name: heimdall
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.4
-   # ports:
-    #  - "$HEIMDALL_PORT:80" # 80 to 82 already taken by other services
-    # - "444:443" # 443 used by Traefik/Nginx Proxy Manager. Disabled because we will put Heimdall behind proxy.
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.103
     volumes:
       - $DOCKERDIR/appdata/heimdall:/config
     security_opt:
@@ -209,8 +207,9 @@ services:
     image: amir20/dozzle
     container_name: dozzle
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.5
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.104
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -251,8 +250,9 @@ services:
     container_name: qbittorrent
     image: linuxserver/qbittorrent
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.6
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.105
     volumes:
       - $DOCKERDIR/appdata/qbittorent/config:/config
       - $DATADIR/downloads:/data/downloads
@@ -282,10 +282,9 @@ services:
     image: linuxserver/jellyfin
     container_name: jellyfin
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.7
-    #ports:
-    #  - 8096:8096
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.106
     volumes:
       - $DOCKERDIR/appdata/jellyfin:/config
       - $DATADIR/media/movies:/data/movies
@@ -319,8 +318,9 @@ services:
     image: linuxserver/prowlarr:develop
     container_name: prowlarr
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.8
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.107
     volumes:
       - $DOCKERDIR/appdata/prowlarr:/config
       - "/etc/localtime:/etc/localtime:ro"
@@ -347,8 +347,9 @@ services:
     image: linuxserver/radarr
     container_name: radarr
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.9
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.108
     volumes:
       - $DOCKERDIR/appdata/radarr:/config
       - $DATADIR/downloads:/data/downloads
@@ -376,8 +377,9 @@ services:
     image: linuxserver/sonarr
     container_name: sonarr
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.10
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.109
     volumes:
       - $DOCKERDIR/appdata/sonarr:/config
       - $DATADIR/downloads:/data/downloads
@@ -404,8 +406,9 @@ services:
     image: linuxserver/bazarr:latest
     container_name: bazarr
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.11
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.110
     volumes:
       - $DOCKERDIR/appdata/bazarr:/config
       - $DATADIR/media:/data/media
@@ -431,8 +434,9 @@ services:
     image: linuxserver/lidarr:latest
     container_name: lidarr
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.12
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.111
     volumes:
       - $DOCKERDIR/appdata/lidarr:/config
       - $DATADIR/media/music:/music
@@ -459,8 +463,9 @@ services:
     image: linuxserver/readarr:develop
     container_name: readarr
     networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.13
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.112
     volumes:
       - $DOCKERDIR/appdata/readarr:/config
     security_opt:
@@ -479,6 +484,118 @@ services:
       ## HTTP Services
       - "traefik.http.routers.readarr-rtr.service=readarr-svc"
       - "traefik.http.services.readarr-svc.loadbalancer.server.port=8787"
+
+# Smokeping - Network latency overwatch
+  smokeping:
+    image: linuxserver/smokeping
+    container_name: smokeping
+    networks:
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.113
+    volumes:
+      - $DOCKERDIR/appdata/smokeping:/config
+      - $DOCKERDIR/appdata/smokeping:/data
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.smokeping-rtr.entrypoints=https"
+      - "traefik.http.routers.smokeping-rtr.rule=Host(`smokeping.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.smokeping-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.smokeping-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.smokeping-rtr.service=smokeping-svc"
+      - "traefik.http.services.smokeping-svc.loadbalancer.server.port=80"
+
+# Paperless-ngx - Document digital library
+  paperless-ngx:
+    image: linuxserver/paperless-ngx
+    container_name: paperless-ngx
+    networks:
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.114
+    volumes:
+      - $DOCKERDIR/appdata/paperless:/config
+      - $DATADIR/paperless:/data
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.paperless-rtr.entrypoints=https"
+      - "traefik.http.routers.paperless-rtr.rule=Host(`paperless.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.paperless-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.paperless-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.paperless-rtr.service=paperless-svc"
+      - "traefik.http.services.paperless-svc.loadbalancer.server.port=8000"
+
+# Uptime Kuma - Uptime monitoring
+  uptime-kuma:
+    image: louislam/uptime-kuma
+    container_name: uptime-kuma
+    networks:
+      - t2_proxy
+      - default
+      #t2_proxy:
+        #ipv4_address: 192.168.90.115
+      #default:
+    volumes:
+      - $DOCKERDIR/appdata/uptime-kuma:/app/data
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.uptime-kuma-rtr.entrypoints=https"
+      - "traefik.http.routers.uptime-kuma-rtr.rule=Host(`kuma.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.uptime-kuma-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.uptime-kuma-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.uptime-kuma-rtr.service=uptime-kuma-svc"
+      - "traefik.http.services.uptime-kuma-svc.loadbalancer.server.port=3001"
+
+# Guacamole - Clientless remote desktop
+  guacamole:
+    image: oznu/guacamole
+    container_name: guacamole
+    networks:
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.116
+    volumes:
+      - $DOCKERDIR/appdata/guacamole:/config
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.guacamole-rtr.entrypoints=https"
+      - "traefik.http.routers.guacamole-rtr.rule=Host(`guacamole.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.guacamole-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.guacamole-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
+      - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
 
 # Pihole - Network ad-blocker
   pihole:
@@ -575,35 +692,6 @@ services:
       - PGID=$PGID
       - TZ=$TZ
 
-# Smokeping - Network latency overwatch
-  smokeping:
-    image: linuxserver/smokeping
-    container_name: smokeping
-    networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.15
-    volumes:
-      - $DOCKERDIR/appdata/smokeping:/config
-      - $DOCKERDIR/appdata/smokeping:/data
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.smokeping-rtr.entrypoints=https"
-      - "traefik.http.routers.smokeping-rtr.rule=Host(`smokeping.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.smokeping-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.smokeping-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.smokeping-rtr.service=smokeping-svc"
-      - "traefik.http.services.smokeping-svc.loadbalancer.server.port=80"
-
 # Code server - VS Code remote server
   code-server:
     image: linuxserver/code-server
@@ -628,35 +716,6 @@ services:
       ## HTTP Services
       - "traefik.http.routers.vscode-rtr.service=vscode-svc"
       - "traefik.http.services.vscode-svc.loadbalancer.server.port=8443"
-
-# Paperless-ngx - Document digital library
-  paperless-ngx:
-    image: linuxserver/paperless-ngx
-    container_name: paperless-ngx
-    networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.16
-    volumes:
-      - $DOCKERDIR/appdata/paperless:/config
-      - $DATADIR/paperless:/data
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.paperless-rtr.entrypoints=https"
-      - "traefik.http.routers.paperless-rtr.rule=Host(`paperless.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.paperless-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.paperless-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.paperless-rtr.service=paperless-svc"
-      - "traefik.http.services.paperless-svc.loadbalancer.server.port=8000"
 
 # Librespeed - Network speed tester
   librespeed:
@@ -717,8 +776,6 @@ services:
       - WATCHTOWER_SCHEDULE:"0 00 03 * * *"
       - DOCKER_API_VERSION:"1.40"
 
-# Lazylibrarian
-
 # Grafana - Graphical data visualization
   grafana:
     image: grafana/grafana
@@ -741,30 +798,6 @@ services:
       ## HTTP Services
       - "traefik.http.routers.grafana-rtr.service=grafana-svc"
       - "traefik.http.services.grafana-svc.loadbalancer.server.port=3000"
-
-# Uptime Kuma - Uptime monitoring
-  uptime-kuma:
-    image: louislam/uptime-kuma
-    container_name: uptime-kuma
-    networks:
-      - t2_proxy
-      - default
-    volumes:
-      - $DOCKERDIR/appdata/uptime-kuma:/app/data
-    restart: always
-    security_opt:
-      - no-new-privileges:true
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.uptime-kuma-rtr.entrypoints=https"
-      - "traefik.http.routers.uptime-kuma-rtr.rule=Host(`kuma.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.uptime-kuma-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.uptime-kuma-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.uptime-kuma-rtr.service=uptime-kuma-svc"
-      - "traefik.http.services.uptime-kuma-svc.loadbalancer.server.port=3001"
 
 # Calibre - Ebook manager
   calibre:
@@ -848,27 +881,3 @@ services:
       ## HTTP Services
       - "traefik.http.routers.filezilla-rtr.service=filezilla-svc"
       - "traefik.http.services.filezilla-svc.loadbalancer.server.port=3000"
-
-# Guacamole - Clientless remote desktop
-  guacamole:
-    image: oznu/guacamole
-    container_name: guacamole
-    networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.18
-    volumes:
-      - $DOCKERDIR/appdata/guacamole:/config
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.guacamole-rtr.entrypoints=https"
-      - "traefik.http.routers.guacamole-rtr.rule=Host(`guacamole.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.guacamole-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.guacamole-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
-      - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
