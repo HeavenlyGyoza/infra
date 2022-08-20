@@ -353,7 +353,7 @@ services:
     volumes:
       - $DOCKERDIR/appdata/radarr:/config
       - $DATADIR/downloads:/data/downloads
-      - $DATADIR/media/movies:/movies
+      - $DATADIR/data:/data/media
       - "/etc/localtime:/etc/localtime:ro"
     security_opt:
       - no-new-privileges:true
@@ -439,7 +439,7 @@ services:
         #ipv4_address: 192.168.90.111
     volumes:
       - $DOCKERDIR/appdata/lidarr:/config
-      - $DATADIR/media/music:/music
+      - $DATADIR/media:/data/media
       - $DATADIR/downloads:/data/downloads
     security_opt:
       - no-new-privileges:true
@@ -468,6 +468,8 @@ services:
         #ipv4_address: 192.168.90.112
     volumes:
       - $DOCKERDIR/appdata/readarr:/config
+      - $DATADIR/downloads:/data/downloads
+      - $DATADIR/media:/data/media
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -666,17 +668,17 @@ services:
       - SYS_MODULE
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.wireguard-rtr.entrypoints=https"
-      - "traefik.http.routers.wireguard-rtr.rule=Host(`wireguard.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.wireguard-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.wireguard-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.wireguard-rtr.service=wireguard-svc"
-      - "traefik.http.services.wireguard-svc.loadbalancer.server.port=51820"
+    #labels:
+    #  - "traefik.enable=true"
+    #  ## HTTP Routers
+    #  - "traefik.http.routers.wireguard-rtr.entrypoints=https"
+    #  - "traefik.http.routers.wireguard-rtr.rule=Host(`wireguard.$DOMAINNAME_CLOUD_SERVER`)"
+    #  - "traefik.http.routers.wireguard-rtr.tls=true"
+    #  ## Middlewares
+    #  - "traefik.http.routers.wireguard-rtr.middlewares=chain-authelia@file"
+    #  ## HTTP Services
+    #  - "traefik.http.routers.wireguard-rtr.service=wireguard-svc"
+    #  - "traefik.http.services.wireguard-svc.loadbalancer.server.port=51820"
 
 # Endlessh - SSH Honeypot
   endlessh:
