@@ -14,6 +14,7 @@ alias ...='cd ../..'
 alias .3='cd ../../..'
 alias .4='cd ../../../..'
 alias .5='cd ../../../../..'
+alias home='cd /home/amaterasu'
 
 # SYSTEM
 alias sysupdate='sudo apt update && apt upgrade'
