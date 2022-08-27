@@ -295,6 +295,9 @@ services:
       - $DATADIR/media/books:/data/books
       - $DATADIR/media/comics:/data/comics
       - $DATADIR/temp/appdata/jellyfin/metadata:/config/metadata
+    devices:
+      - /dev/dri/card0:/dev/dri/card0
+      - /dev/dri/renderD128:/dev/dri/renderD128
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -599,6 +602,52 @@ services:
       - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
       - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
 
+# File Browser - Remotye file browser
+  filebrowser:
+    image: filebrowser/filebrowser:s6
+    container_name: filebrowser
+    networks:
+      - t2_proxy
+    volumes: 
+      - $DOCKERDIR/appdata/filebrowser/filebrowser.json:/.filebrowser.json
+      - $DOCKERDIR/appdata/filebrowser/filebrowser.db:/database.db
+      - $HOME:/srv
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.filebrowser-rtr.entrypoints=https"
+      - "traefik.http.routers.filebrowser-rtr.rule=Host(`filebrowser.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.filwbrowser-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.filebrowser-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.filebrowser-rtr.service=filebrowser-svc"
+      - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=8080"
+
+# MakeMKV - MKV ripper
+  makemkv:
+    image: jlesage/makemkv
+    container_name: makemkv
+    networks:
+      - t2_proxy
+    volumes:
+      - $DOCKERDIR/appdata/makemkv:/conifg:rw
+      - $DATADIR/storage/downloads:ro
+      - $DATADIR/storage/transcodes:/output:rw
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.makemkv-rtr.entrypoints=https"
+      - "traefik.http.routers.makemkv-rtr.rule=Host(`makemkv.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.makemkv-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.makemkv-rtr.service=makemkv-svc"
+      - "traefik.http.services.makemkv-svc.loadbalancer.server.port=5800"
+
 # Pihole - Network ad-blocker
   pihole:
     image: pihole/pihole
@@ -668,17 +717,6 @@ services:
       - SYS_MODULE
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
-    #labels:
-    #  - "traefik.enable=true"
-    #  ## HTTP Routers
-    #  - "traefik.http.routers.wireguard-rtr.entrypoints=https"
-    #  - "traefik.http.routers.wireguard-rtr.rule=Host(`wireguard.$DOMAINNAME_CLOUD_SERVER`)"
-    #  - "traefik.http.routers.wireguard-rtr.tls=true"
-    #  ## Middlewares
-    #  - "traefik.http.routers.wireguard-rtr.middlewares=chain-authelia@file"
-    #  ## HTTP Services
-    #  - "traefik.http.routers.wireguard-rtr.service=wireguard-svc"
-    #  - "traefik.http.services.wireguard-svc.loadbalancer.server.port=51820"
 
 # Endlessh - SSH Honeypot
   endlessh:
@@ -718,65 +756,6 @@ services:
       ## HTTP Services
       - "traefik.http.routers.vscode-rtr.service=vscode-svc"
       - "traefik.http.services.vscode-svc.loadbalancer.server.port=8443"
-
-# Librespeed - Network speed tester
-  librespeed:
-    image: linuxserver/librespeed
-    container_name: librespeed
-    volumes:
-      - $DOCKERDIR/appdata/librespeed:/config
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-      - PASSWORD=PASWORD
-
-# Nextcloud - Private cloud server
-  nextcloud:
-    image: linuxserver/nextcloud
-    container_name: nextcloud
-    volumes:
-      - $DOCKERDIR/appdata/nextcloud:/config
-      - $DATADIR/nextcloud:/data
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.nextcloud-rtr.entrypoints=https"
-      - "traefik.http.routers.nextcloud-rtr.rule=Host(`nextcloud.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.nextcloud-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.nextcloud-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.nextcloud-rtr.service=smokeping-svc"
-      - "traefik.http.services.nextcloud-svc.loadbalancer.server.port=443"
-
-# Watchtower - Docker container updating manager
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    environment:
-      - TZ=$TZ
-      - WATCHTOWER_CLEANUP:"true"
-      - WATCHTOWER_REMOVE_VOLUMES:"true"
-      - WATCHTOWER_INCLUDE_STOPPED:"true"
-      - WATCHTOWER_NO_STARTUP_MESSAGE:"false"
-      - WATCHTOWER_SCHEDULE:"0 00 03 * * *"
-      - DOCKER_API_VERSION:"1.40"
 
 # Grafana - Graphical data visualization
   grafana:
@@ -856,30 +835,3 @@ services:
       - "traefik.http.routers.calibre-web-rtr.service=calibre-web-svc"
       - "traefik.http.services.calibre-web-svc.loadbalancer.server.port=8083"
 
-# Filezilla - Secure file transfer application
-  filezilla:
-    image: linuxserver/filezilla
-    container_name: filezilla
-    networks:
-      t2_proxy:
-        ipv4_address: 192.168.90.17
-    volumes:
-      - $DOCKERDIR/appdata/filezilla:/config
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.filezilla-rtr.entrypoints=https"
-      - "traefik.http.routers.filezilla-rtr.rule=Host(`filezilla.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.filezilla-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.filezilla-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.filezilla-rtr.service=filezilla-svc"
-      - "traefik.http.services.filezilla-svc.loadbalancer.server.port=3000"
