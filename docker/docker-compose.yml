@@ -520,36 +520,6 @@ services:
       - "traefik.http.routers.smokeping-rtr.service=smokeping-svc"
       - "traefik.http.services.smokeping-svc.loadbalancer.server.port=80"
 
-# Paperless-ngx - Document digital library
-  paperless-ngx:
-    image: linuxserver/paperless-ngx
-    container_name: paperless-ngx
-    networks:
-      - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.114
-    volumes:
-      - $DOCKERDIR/appdata/paperless:/config
-      - $DATADIR/paperless:/data
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.paperless-rtr.entrypoints=https"
-      - "traefik.http.routers.paperless-rtr.rule=Host(`paperless.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.paperless-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.paperless-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.paperless-rtr.service=paperless-svc"
-      - "traefik.http.services.paperless-svc.loadbalancer.server.port=8000"
-
 # Uptime Kuma - Uptime monitoring
   uptime-kuma:
     image: louislam/uptime-kuma
@@ -601,6 +571,8 @@ services:
       ## HTTP Services
       - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
       - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
+
+########################### WIPs
 
 # File Browser - Remotye file browser
   filebrowser:
@@ -835,3 +807,32 @@ services:
       - "traefik.http.routers.calibre-web-rtr.service=calibre-web-svc"
       - "traefik.http.services.calibre-web-svc.loadbalancer.server.port=8083"
 
+# Paperless-ngx - Document digital library
+  paperless-ngx:
+    image: linuxserver/paperless-ngx
+    container_name: paperless-ngx
+    networks:
+      - t2_proxy
+      #t2_proxy:
+        #ipv4_address: 192.168.90.114
+    volumes:
+      - $DOCKERDIR/appdata/paperless:/config
+      - $DATADIR/paperless:/data
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.paperless-rtr.entrypoints=https"
+      - "traefik.http.routers.paperless-rtr.rule=Host(`paperless.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.paperless-rtr.tls=true"
+      ## Middlewares
+      - "traefik.http.routers.paperless-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.paperless-rtr.service=paperless-svc"
+      - "traefik.http.services.paperless-svc.loadbalancer.server.port=8000"
