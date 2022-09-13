@@ -355,8 +355,8 @@ services:
         #ipv4_address: 192.168.90.108
     volumes:
       - $DOCKERDIR/appdata/radarr:/config
-      - $DATADIR/downloads:/data/downloads
-      - $DATADIR/data:/data/media
+      #- $DATADIR/downloads:/data/downloads
+      - $DATADIR/data:/data/
       - "/etc/localtime:/etc/localtime:ro"
     security_opt:
       - no-new-privileges:true
@@ -385,8 +385,8 @@ services:
         #ipv4_address: 192.168.90.109
     volumes:
       - $DOCKERDIR/appdata/sonarr:/config
-      - $DATADIR/downloads:/data/downloads
-      - $DATADIR/media:/data/media
+      #- $DATADIR/downloads:/data/downloads
+      - $DATADIR:/data/
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -443,7 +443,7 @@ services:
     volumes:
       - $DOCKERDIR/appdata/lidarr:/config
       - $DATADIR/media:/data/media
-      - $DATADIR/downloads:/data/downloads
+      #- $DATADIR/downloads:/data/downloads
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -471,7 +471,7 @@ services:
         #ipv4_address: 192.168.90.112
     volumes:
       - $DOCKERDIR/appdata/readarr:/config
-      - $DATADIR/downloads:/data/downloads
+      #- $DATADIR/downloads:/data/downloads
       - $DATADIR/media:/data/media
     security_opt:
       - no-new-privileges:true
@@ -572,18 +572,17 @@ services:
       - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
       - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
 
-########################### WIPs
-
-# File Browser - Remotye file browser
+# File Browser - Web file browser
   filebrowser:
     image: filebrowser/filebrowser:s6
     container_name: filebrowser
     networks:
       - t2_proxy
-    volumes: 
+    volumes:
       - $DOCKERDIR/appdata/filebrowser/filebrowser.json:/.filebrowser.json
       - $DOCKERDIR/appdata/filebrowser/filebrowser.db:/database.db
-      - $HOME:/srv
+      - /home/amaterasu:/home
+      - $DATADIR:/data
     environment:
       - PUID=$PUID
       - PGID=$PGID
@@ -592,12 +591,14 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.filebrowser-rtr.entrypoints=https"
       - "traefik.http.routers.filebrowser-rtr.rule=Host(`filebrowser.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.filwbrowser-rtr.tls=true"
+      - "traefik.http.routers.filebrowser-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.filebrowser-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.filebrowser-rtr.service=filebrowser-svc"
-      - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=8080"
+      - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=80"
+
+########################### WIPs
 
 # MakeMKV - MKV ripper
   makemkv:
@@ -606,7 +607,7 @@ services:
     networks:
       - t2_proxy
     volumes:
-      - $DOCKERDIR/appdata/makemkv:/conifg:rw
+      - $DOCKERDIR/appdata/makemkv:/config:rw
       - $DATADIR/storage/downloads:ro
       - $DATADIR/storage/transcodes:/output:rw
     labels:
@@ -619,6 +620,26 @@ services:
       ## HTTP Services
       - "traefik.http.routers.makemkv-rtr.service=makemkv-svc"
       - "traefik.http.services.makemkv-svc.loadbalancer.server.port=5800"
+
+# MKVToolNix - MKV muxing tool
+  mkvtoolnix:
+    image: jlesage/mkvtoolnix
+    container_name: mmkvtoolnix
+    networks:
+      - t2_proxy
+    volumes:
+    - $DOCKERDIR:/appdata/mkvtoolnix:/config:rw
+    - $DATADIR:/storage:rw
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.mkvtoolnix-rtr.entrypoints=https"
+      - "traefik.http.routers.mkvtoolnix-rtr.rule=Host(`mkvtoolnix.$DOMAINNAME_CLOUD_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.mkvtoolnix-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.mkvtoolnix-rtr.service=mkvtoolnix-svc"
+      - "traefik.http.services.mkvtoolnix-svc.loadbalancer.server.port=5800"
 
 # Pihole - Network ad-blocker
   pihole:
