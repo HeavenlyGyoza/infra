@@ -355,7 +355,6 @@ services:
         #ipv4_address: 192.168.90.108
     volumes:
       - $DOCKERDIR/appdata/radarr:/config
-      #- $DATADIR/downloads:/data/downloads
       - $DATADIR/data:/data/
       - "/etc/localtime:/etc/localtime:ro"
     security_opt:
@@ -385,7 +384,6 @@ services:
         #ipv4_address: 192.168.90.109
     volumes:
       - $DOCKERDIR/appdata/sonarr:/config
-      #- $DATADIR/downloads:/data/downloads
       - $DATADIR:/data/
     security_opt:
       - no-new-privileges:true
@@ -579,10 +577,9 @@ services:
     networks:
       - t2_proxy
     volumes:
-      - $DOCKERDIR/appdata/filebrowser/filebrowser.json:/.filebrowser.json
-      - $DOCKERDIR/appdata/filebrowser/filebrowser.db:/database.db
-      - /home/amaterasu:/home
-      - $DATADIR:/data
+      - $DOCKERDIR/appdata/filebrowser:/config
+      - $USERDIR:/srv
+      - $DATADIR:/srv/media
     environment:
       - PUID=$PUID
       - PGID=$PGID
