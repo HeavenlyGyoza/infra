@@ -255,7 +255,7 @@ services:
         #ipv4_address: 192.168.90.105
     volumes:
       - $DOCKERDIR/appdata/qbittorent/config:/config
-      - $DATADIR/downloads:/data/downloads
+      - $DATADIR/data/downloads:/data/downloads
       - $DATADIR/torrents:/data/torrents
     security_opt:
       - no-new-privileges:true
@@ -287,13 +287,13 @@ services:
         #ipv4_address: 192.168.90.106
     volumes:
       - $DOCKERDIR/appdata/jellyfin:/config
-      - $DATADIR/media/movies:/data/movies
-      - $DATADIR/media/series:/data/series
-      - $DATADIR/media/anime:/data/anime
-      - $DATADIR/media/manga:/data/manga
-      - $DATADIR/media/music:/data/music
-      - $DATADIR/media/books:/data/books
-      - $DATADIR/media/comics:/data/comics
+      - $DATADIR/data/media/movies:/data/movies
+      - $DATADIR/data/media/series:/data/series
+      - $DATADIR/data/media/anime:/data/anime
+      - $DATADIR/data/media/manga:/data/manga
+      - $DATADIR/data/media/music:/data/music
+      - $DATADIR/data/media/books:/data/books
+      - $DATADIR/data/media/comics:/data/comics
       - $DATADIR/temp/appdata/jellyfin/metadata:/config/metadata
     devices:
       - /dev/dri/card0:/dev/dri/card0
@@ -384,7 +384,7 @@ services:
         #ipv4_address: 192.168.90.109
     volumes:
       - $DOCKERDIR/appdata/sonarr:/config
-      - $DATADIR:/data/
+      - $DATADIR/data:/data/
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -412,7 +412,9 @@ services:
         #ipv4_address: 192.168.90.110
     volumes:
       - $DOCKERDIR/appdata/bazarr:/config
-      - $DATADIR/media:/data/media
+      - $DATADIR/data/media:/data/media
+      #- $DATADIR/data/media/movies:/movies
+      #- $DATADIR/data/media/series:/series
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
