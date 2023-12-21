@@ -4,6 +4,7 @@ Currently it sets up my bash aliases, an ed25519 SSH public key and my docker st
 
 <h3>TODO:</h3>
 <ul>
+    <li> Fix automount in fstab</li>
     <li> Automate deployment via Ansible playbook</li>
     <li> Configure and deploy the rest of my docker stack </li>
     <ul>
