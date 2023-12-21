@@ -12,6 +12,7 @@ Currently it sets up my bash aliases, an ed25519 SSH public key and my docker st
         <li>Pihole</li>
         <li>Endlessh</li>
         <li>Wireguard</li>
+        <li>Paperless-ngx</li>
     </ul>
     <li> Add SSH config file </li>
 <ul>
