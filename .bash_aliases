@@ -5,7 +5,7 @@ alias dcrecreate='sudo docker-compose -f /home/amaterasu/docker/docker-compose.y
 alias dcrestart='sudo docker-compose -f /home/amaterasu/docker/docker-compose.yml restart'
 alias dcstop='sudo docker-compose -f /home/amaterasu/docker/docker-compose.yml stop'
 alias dclogs='sudo docker logs -tf --tail="50"'
-alias dcpull='sudo /home/amaterasu/docker/docker-compose.yml pull'
+alias dcpull='sudo docker compose -f /home/amaterasu/docker/docker-compose.yml pull'
 
 # NAVIGATION
 alias cd..='cd ..'
@@ -14,15 +14,15 @@ alias ...='cd ../..'
 alias .3='cd ../../..'
 alias .4='cd ../../../..'
 alias .5='cd ../../../../..'
-alias home='cd /home/amaterasu'
 
 # SYSTEM
-alias sysupdate='sudo apt update && apt upgrade'
+alias sysupdate='sudo apt-get update && sudo apt-get upgrade'
 alias shutdown='sudo shutdown -h now'
 alias reboot='sudo reboot'
 
 # SYSTEM SERVICES
-alias sshstart='ctlstart ssh'
-alias sshstop='ctlstop ssh'
-alias sshrestart='ctlrestart ssh'
-alias sshstatus='ctlstatus ssh'
+alias sshstart='systemctl start ssh'
+alias sshstop='systemctl stop ssh'
+alias sshrestart='systemctl restart ssh'
+alias sshstatus='systemctl status ssh'
+alias screencleanup='sudo /etc/init.d/screen-cleanup start'
