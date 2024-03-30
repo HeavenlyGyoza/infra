@@ -1,8 +1,0 @@
-users:
-  amaterasu:
-    displayname: "Amaterasu"
-    password: "$argon2id$v=19$m=65536,t=3,p=4$djNTTDBNQ1J6V0Q3LzZSbQ$r7LiPGdV7n3619EFwK8PQJZseFhKd9xEfZQh7oSQ4JU"
-    email: s.gfranco@protonmail.com
-    groups:
-      - admins
-      - dev
