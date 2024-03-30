@@ -1,0 +1,9 @@
+[Unit]
+Description=Automount mergerfs disk2
+
+[Automount]
+Where=/mnt/disk2
+TimeoutIdleSec=0
+
+[Install]
+WantedBy=multi-user.target
