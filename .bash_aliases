@@ -1,11 +1,13 @@
 # DOCKER COMPOSE
-alias dcup='sudo docker-compose -f /home/amaterasu/docker/docker-compose.yml up -d'
-alias dcdown='sudo docker-compose -f /home/amaterasu/docker/docker-compose.yml down --remove-orphans'
-alias dcrecreate='sudo docker-compose -f /home/amaterasu/docker/docker-compose.yml up -d --force-recreate --remove-orphans'
-alias dcrestart='sudo docker-compose -f /home/amaterasu/docker/docker-compose.yml restart'
-alias dcstop='sudo docker-compose -f /home/amaterasu/docker/docker-compose.yml stop'
+alias dcup='sudo docker compose -f /home/amaterasu/docker/docker-compose.yml up -d'
+alias dcdown='sudo docker compose -f /home/amaterasu/docker/docker-compose.yml down --remove-orphans'
+alias dcrecreate='sudo docker compose -f /home/amaterasu/docker/docker-compose.yml up -d --force-recreate --remove-orphans'
+alias dcrestart='sudo docker compose -f /home/amaterasu/docker/docker-compose.yml restart'
+alias dcstop='sudo docker compose -f /home/amaterasu/docker/docker-compose.yml stop'
 alias dclogs='sudo docker logs -tf --tail="50"'
 alias dcpull='sudo docker compose -f /home/amaterasu/docker/docker-compose.yml pull'
+alias dall='sudo docker ps -a'
+alias dprune='sudo docker system prune && sudo docker image prune && sudo docker volume prune'
 
 # NAVIGATION
 alias cd..='cd ..'
