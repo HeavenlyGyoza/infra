@@ -2,17 +2,17 @@
 #                   Authelia configuration                    #
 ###############################################################
 
-#host: 0.0.0.0
-#port: 9091
-log_level: warn
 theme: dark
-jwt_secret: qDjaZ9jG75S6m3Xacsg2LuPQZ53ZsHlqRsFWFIMPQXKThQTtMo2dyszWOv6k1mF
 # https://docs.authelia.com/configuration/miscellaneous.html#default-redirection-url
 default_redirection_url: https://auth.angrybuddha.org
 
 server:
   host: 0.0.0.0
   port: 9091
+
+log:
+  level: info
+  format: text
 
 totp:
   issuer: authelia.com
@@ -21,13 +21,13 @@ totp:
 
 authentication_backend:
   file:
-    path: /config/users_database.yml
+    path: /config/users.yml
     password:
       algorithm: argon2id
       iterations: 1
       salt_length: 16
-      parallelism: 4
-      memory: 64
+      parallelism: 8
+      memory: 128
 
 access_control:
   default_policy: deny
@@ -38,28 +38,19 @@ access_control:
         - "*.angrybuddha.org"
         - "angrybuddha.org"
       policy: two_factor
-    #- domain:
-    #  - "*.angrybuddha.org"
-    #  - "angrybuddha.org"
-    #  policy: one_factor
-    #  networks:
-    #    - 192.168.1.0/24
 
 session:
   name: authelia_session
-  # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET_FILE
-  # secret: SECRET_GOES_HERE # use docker secret file instead AUTHELIA_SESSION_SECRET_FILE
-  expiration: 3600 # 1 hour
-  inactivity: 300 # 5 minutes
+  expiration: 1h
+  inactivity: 5m
   domain: angrybuddha.org # Should match whatever your root protected domain is
 
 regulation:
   max_retries: 3
-  find_time: 120
-  ban_time: 300
+  find_time: 300
+  ban_time: 600
 
 storage:
-  encryption_key: hFpb4fzoZkfJRNXxEZ3CmJDp7gjBgdC7XqKaAU9suSFsGyAUNL6wcPTQ3Jx7SGoqdrjHSHJi3YEVv3ixfXQMFi2UkLAVzWFVMG2KhWFioUeMXssY78ja85i82N7Kth4X
   local:
     path: /config/db.sqlite3
 
@@ -67,10 +58,3 @@ notifier:
   # For testing purposes, notifications can be sent in a file. Be sure to map the volume in docker-compose.
   filesystem:
     filename: /config/notification.txt
-  #smtp:
-  #  username: 
-  #  # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
-  #  # password: PASSWORD_GOES_HERE # use docker secret file instead AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
-  #  host: 
-  #  port: 587 # Or 465
-  #  sender: SENDER_EMAIL

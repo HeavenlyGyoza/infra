@@ -23,6 +23,7 @@ http:
         stsIncludeSubdomains: true
         stsPreload: true
         forceSTSHeader: true
+        customFrameOptionsValue: SAMEORIGIN
         #customFrameOptionsValue: "allow-from https:{{env "DOMAINNAME_CLOUD_SERVER"}}" #CSP takes care of this but may be needed for organizr.
         contentTypeNosniff: true
         browserXssFilter: true
