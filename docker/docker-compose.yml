@@ -1,63 +1,89 @@
-version: "3.9"
+# version: "3.9"
 ########################### NETWORKS
 networks:
   default:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.92.0/24
   t2_proxy:
     name: t2_proxy
     driver: bridge
     ipam:
       config:
         - subnet: 192.168.90.0/24
+  socket_proxy:
+    name: socket_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.91.0/24
+
+########################### SECRETS
+secrets:
+  cf_dns_api_token:
+    file: $DOCKERDIR/secrets/cf_dns_api_token
+  authelia_jwt_secret:
+    file: $DOCKERDIR/secrets/authelia_jwt_secret
+  authelia_session_secret:
+    file: $DOCKERDIR/secrets/authelia_session_secret
+  authelia_storage_encryption_key:
+    file: $DOCKERDIR/secrets/authelia_storage_encryption_key
+
 
 ########################### SERVICES
+
+########### CORE
 services:
-# Traefik - Reverse Proxy
+# Traefik 2 - Reverse Proxy
   traefik:
-    image: traefik:2.7
+    image: traefik:2.10
     container_name: traefik
-    command:
+    command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
-      - --entryPoints.http.address=:80
-      - --entryPoints.https.address=:443
-      # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
-      - --entrypoints.https.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22
-      - --entryPoints.traefik.address=:8080
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.traefik.address=:8080
+      - --entrypoints.qbittorrent.address=:6881/tcp
+      - --entrypoints.websecure.http.tls=true
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
       - --api=true
-      # - --api.insecure=true
       - --api.dashboard=true
-      # - --serversTransport.insecureSkipVerify=true
+      # - --api.insecure=true
+      #- --serversTransport.insecureSkipVerify=true
+      # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
+      - --entrypoints.websecure.forwardedHeaders.trustedIPs=$CLOUDFLARE_IPS,$LOCAL_IPS
       - --log=true
-      - --log.level=INFO # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --log.filePath=/logs/traefik.log
+      - --log.level=DEBUG # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
       - --accessLog=true
-      - --accessLog.filePath=/traefik.log
+      - --accessLog.filePath=/logs/access.log
       - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
-      - --accessLog.filters.statusCodes=400-499
+      - --accessLog.filters.statusCodes=204-299,400-499,500-599
       - --providers.docker=true
-      - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
-      # - --providers.docker.endpoint=tcp://socket-proxy:2375 # Use this instead of the previous line if you have socket proxy.
+      # - --providers.docker.endpoint=unix:///var/run/docker.sock # Disable for Socket Proxy. Enable otherwise.
+      - --providers.docker.endpoint=tcp://socket-proxy:2375 # Enable for Socket Proxy. Disable otherwise.
       - --providers.docker.exposedByDefault=false
-      - --entrypoints.https.http.tls.options=tls-opts@file
-      # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
-      - --entrypoints.https.http.tls.certresolver=dns-cloudflare
-      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME_CLOUD_SERVER
-      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME_CLOUD_SERVER
       - --providers.docker.network=t2_proxy
       - --providers.docker.swarmMode=false
+      - --entrypoints.websecure.http.tls.options=tls-opts@file
+      # Add dns-cloudflare as default certresolver for all services. Also enables TLS and no need to specify on individual services
+      - --entrypoints.websecure.http.tls.certresolver=dns-cloudflare
+      - --entrypoints.websecure.http.tls.domains[0].main=$DOMAINNAME_SERVER
+      - --entrypoints.websecure.http.tls.domains[0].sans=*.$DOMAINNAME_SERVER
       - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
-      # - --providers.file.filename=/path/to/file # Load dynamic configuration from a file
       - --providers.file.watch=true # Only works on top level files in the rules folder
-      #- --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
-      - --certificatesResolvers.dns-cloudflare.acme.email=$CLOUDFLARE_EMAIL
+      # - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # LetsEncrypt Staging Server - uncomment when testing
       - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # To delay DNS check and reduce LE hitrate
     networks:
       - t2_proxy
-      #t2_proxy:
-      #  ipv4_address: 192.168.90.100
+      - socket_proxy
     ports:
       - target: 80
         published: 80
@@ -73,31 +99,22 @@ services:
       #   mode: host
     volumes:
       - $DOCKERDIR/appdata/traefik2/rules:/rules # file provider directory
-      - /var/run/docker.sock:/var/run/docker.sock:ro #TODO Socket Proxy
       - $DOCKERDIR/appdata/traefik2/acme/acme.json:/acme.json # cert location
-      - $DOCKERDIR/logs/server/traefik.log:/traefik.log # for fail2ban
-      - $DOCKERDIR/shared:/shared
+      - $DOCKERDIR/logs/server/traefik.log:/logs/traefik.log # logs
     security_opt:
       - no-new-privileges:true
     restart: always
     environment:
-      - CF_API_EMAIL=$CLOUDFLARE_EMAIL
-      - CF_API_KEY=$CLOUDFLARE_API_KEY
-      - DOMAINNAME_CLOUD_SERVER
+      - TZ=$TZ
+      - CF_DNS_API_TOKEN=$CLOUDFLARE_DNS_API_TOKEN #/run/secrets/cf_dns_api_token
+      - DOMAINNAME_SERVER
+    secrets:
+      - cf_dns_api_token
     labels:
       - "traefik.enable=true"
-      # HTTP-to-HTTP
-      - "traefik.http.routers.http-catchall.entrypoints=http"
-      - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
-      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       # HTTP Routers
-      - "traefik.http.routers.traefik-rtr.entrypoints=https"
-      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.traefik-rtr.tls=true"
-      #- "traefik.http.routers.traefik-rtr.tls.certresolver=dns-cloudflare" # Comment out this line after first run of traefik to force the use of wildcard certs
-      - "traefik.http.routers.traefik-rtr.tls.domains[0].main=$DOMAINNAME_CLOUD_SERVER"
-      - "traefik.http.routers.traefik-rtr.tls.domains[0].sans=*.$DOMAINNAME_CLOUD_SERVER"
+      - "traefik.http.routers.traefik-rtr.entrypoints=websecure"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME_SERVER`)"
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
       ## Middlewares
@@ -106,12 +123,11 @@ services:
 
 # Authelia - SSO & 2FA
   authelia:
-    image: authelia/authelia
+    image: authelia/authelia:4.37.5
     container_name: authelia
     networks:
       - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.101
+      - socket_proxy
     volumes:
       - $DOCKERDIR/appdata/authelia:/config
     security_opt:
@@ -119,30 +135,84 @@ services:
     restart: always
     environment:
       - TZ=$TZ
+      - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
+      - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
+      - DOMAINNAME_SERVER
+    secrets:
+      - authelia_jwt_secret
+      - authelia_storage_encryption_key
+      - authelia_session_secret
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.authelia-rtr.entrypoints=https"
-      - "traefik.http.routers.authelia-rtr.rule=Host(`auth.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.authelia-rtr.tls=true"
+      - "traefik.http.routers.authelia-rtr.entrypoints=websecure"
+      - "traefik.http.routers.authelia-rtr.rule=Host(`auth.$DOMAINNAME_SERVER`)"
       ## Middlewares
-      - "traefik.http.routers.traefik-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.authelia-rtr.service=authelia-svc"
       - "traefik.http.services.authelia-svc.loadbalancer.server.port=9091"
+
+# Docker Socket Proxy - Security Enhanced Proxy for Docker Socket
+  socket-proxy:
+    container_name: socket-proxy
+    image: tecnativa/docker-socket-proxy
+    networks:
+      socket_proxy:
+        ipv4_address: 192.168.91.254
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    privileged: true
+    ports:
+      - "127.0.0.1:2375:2375"
+    environment:
+      - LOG_LEVEL=info # debug,info,notice,warning,err,crit,alert,emerg
+      ## Variables match the URL prefix (i.e. AUTH blocks access to /auth/* parts of the API, etc.).
+      # 0 to revoke access.
+      # 1 to grant access.
+      ## Granted by Default
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      ## Revoked by Default
+      # Security critical
+      - AUTH=0
+      - SECRETS=0
+      - POST=0 # Watchtower
+      # Not always needed
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - CONTAINERS=1 # Traefik, Portainer, etc.
+      - DISTRIBUTION=0
+      - EXEC=0
+      - IMAGES=1 # Portainer
+      - INFO=1 # Portainer
+      - NETWORKS=1 # Portainer
+      - NODES=0
+      - PLUGINS=0
+      - SERVICES=1 # Portainer
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=1 # Portainer
+      - VOLUMES=1 # Portainer
+
 
 # Portainer - WebUI for Docker containers
   portainer:
     container_name: portainer
     image: portainer/portainer-ce
-    command: -H unix:///var/run/docker.sock
+    command: -H tcp://socket-proxy:2375
     networks:
       - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.102
+      - socket_proxy
     volumes:
       - $DOCKERDIR/appdata/portainer/data:/data
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: always
     security_opt:
       - no-new-privileges:true
@@ -151,9 +221,8 @@ services:
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.portainer-rtr.entrypoints=https"
-      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.portainer-rtr.tls=true"
+      - "traefik.http.routers.portainer-rtr.entrypoints=websecure"
+      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_SERVER`)"
       ## Middlewares
       - "traefik.http.routers.portainer-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
@@ -166,8 +235,7 @@ services:
     container_name: heimdall
     networks:
       - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.103
+      - socket_proxy
     volumes:
       - $DOCKERDIR/appdata/heimdall:/config
     security_opt:
@@ -180,27 +248,13 @@ services:
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.heimdall-rtr.entrypoints=https"
-      - "traefik.http.routers.heimdall-rtr.rule=Host(`$DOMAINNAME_CLOUD_SERVER`,`www.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.heimdall-rtr.tls=true"
+      - "traefik.http.routers.heimdall-rtr.entrypoints=websecure"
+      - "traefik.http.routers.heimdall-rtr.rule=Host(`$DOMAINNAME_SERVER`,`www.$DOMAINNAME_SERVER`)"
       ## Middlewares
       - "traefik.http.routers.heimdall-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.heimdall-rtr.service=heimdall-svc"
       - "traefik.http.services.heimdall-svc.loadbalancer.server.port=80"
-
-# Cloudflare-ddns - Cloudflare Dynamic DNS
-  cloudflare-ddns:
-    image: oznu/cloudflare-ddns
-    container_name: cloudflare-ddns
-    restart: always
-    environment:
-      - API_KEY=$CLOUDFLARE_API_TOKEN
-      - ZONE=$DOMAINNAME_CLOUD_SERVER
-      - PROXIED=true
-      - DNS_SERVER=1.1.1.1
-      - RRTYPE=A
-      - DELETE_ON_STOP=false
 
 # Dozzle - Real-time Docker Log Viewer
   dozzle:
@@ -208,20 +262,22 @@ services:
     container_name: dozzle
     networks:
       - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.104
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - socket_proxy
+    # volumes:
+    #   - /var/run/docker.sock:/var/run/docker.sock
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
     environment:
       DOZZLE_LEVEL: info
       DOZZLE_TAILSIZE: 300
       DOZZLE_FILTER: "status=running"
+      DOCKER_HOST: tcp://socket-proxy:2375
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.dozzle-rtr.entrypoints=https"
-      - "traefik.http.routers.dozzle-rtr.rule=Host(`dozzle.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.dozzle-rtr.tls=true"
+      - "traefik.http.routers.dozzle-rtr.entrypoints=websecure"
+      - "traefik.http.routers.dozzle-rtr.rule=Host(`dozzle.$DOMAINNAME_SERVER`)"
       ## Middlewares
       - "traefik.http.routers.dozzle-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
@@ -233,17 +289,31 @@ services:
     container_name: cf-companion
     image: tiredofit/traefik-cloudflare-companion
     restart: always
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket_proxy
     environment:
       - TIMEZONE=$TZ
       - TRAEFIK_VERSION=2
-     # - CF_EMAIL=$CLOUDFLARE_EMAIL # Same as traefik
-      - CF_TOKEN=$CLOUDFLARE_API_TOKEN # Same as traefik
-      - TARGET_DOMAIN=$DOMAINNAME_CLOUD_SERVER
-      - DOMAIN1=$DOMAINNAME_CLOUD_SERVER
-      - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID # Copy from Cloudflare Overview page
+      - CF_TOKEN=$CLOUDFLARE_DNS_API_TOKEN
+      - TARGET_DOMAIN=$DOMAINNAME_SERVER
+      - DOMAIN1=$DOMAINNAME_SERVER
+      - DOMAIN1_ZONE_ID=$CLOUDFLARE_ZONEID 
       - DOMAIN1_PROXIED=TRUE
+      - DOCKER_HOST=tcp://socket-proxy:2375
+
+# Flaresolverr - Cloudflare DDosS-GUARD protection bypass
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    environment:
+      - TZ=$TZ
+      - LOG_LEVEL=info
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+
+########### MEDIA
 
 # qBittorrent - Torrent Downloader
   qbittorrent:
@@ -251,12 +321,9 @@ services:
     image: linuxserver/qbittorrent
     networks:
       - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.105
     volumes:
       - $DOCKERDIR/appdata/qbittorent/config:/config
       - $DATADIR/data/downloads:/data/downloads
-      - $DATADIR/torrents:/data/torrents
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -268,9 +335,12 @@ services:
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.qbittorrent-rtr.entrypoints=https"
-      - "traefik.http.routers.qbittorrent-rtr.rule=Host(`qbitt.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.qbittorrent-rtr.tls=true"
+      - "traefik.http.routers.qbittorrent-rtr.entrypoints=websecure"
+      - "traefik.http.routers.qbittorrent-rtr.rule=Host(`qbitt.$DOMAINNAME_SERVER`)"
+      ## TCP Routers
+      - "traefik.tcp.routers.qbittorrent-tcp.entrypoints=qbittorrent"
+      - "traefik.tcp.routers.qbittorrent-tcp.rule=HostSNI(`*`)" # Accepts all hostnames for TCP traffic
+      - "traefik.tcp.services.qbittorrent-tcp.loadbalancer.server.port=6881" # Adjust port if necessary
       ## Middlewares
       - "traefik.http.routers.qbittorrent-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
@@ -283,17 +353,11 @@ services:
     container_name: jellyfin
     networks:
       - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.106
     volumes:
       - $DOCKERDIR/appdata/jellyfin:/config
       - $DATADIR/data/media/movies:/data/movies
       - $DATADIR/data/media/series:/data/series
       - $DATADIR/data/media/anime:/data/anime
-      - $DATADIR/data/media/manga:/data/manga
-      - $DATADIR/data/media/music:/data/music
-      - $DATADIR/data/media/books:/data/books
-      - $DATADIR/data/media/comics:/data/comics
       - $DATADIR/temp/appdata/jellyfin/metadata:/config/metadata
     devices:
       - /dev/dri/card0:/dev/dri/card0
@@ -308,8 +372,8 @@ services:
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.jellyfin-rtr.entrypoints=https"
-      - "traefik.http.routers.jellyfin-rtr.rule=Host(`jellyfin.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.jellyfin-rtr.entrypoints=websecure"
+      - "traefik.http.routers.jellyfin-rtr.rule=Host(`jellyfin.$DOMAINNAME_SERVER`)"
       ## Middlewares
       - "traefik.http.routers.jellyfin-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
@@ -322,8 +386,6 @@ services:
     container_name: prowlarr
     networks:
       - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.107
     volumes:
       - $DOCKERDIR/appdata/prowlarr:/config
       - "/etc/localtime:/etc/localtime:ro"
@@ -337,8 +399,8 @@ services:
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.prowlarr-rtr.entrypoints=https"
-      - "traefik.http.routers.prowlarr-rtr.rule=Host(`prowlarr.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.prowlarr-rtr.entrypoints=websecure"
+      - "traefik.http.routers.prowlarr-rtr.rule=Host(`prowlarr.$DOMAINNAME_SERVER`)"
       ## Middlewares
       - "traefik.http.routers.prowlarr-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
@@ -351,11 +413,9 @@ services:
     container_name: radarr
     networks:
       - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.108
     volumes:
       - $DOCKERDIR/appdata/radarr:/config
-      - $DATADIR/data:/data/
+      - $DATADIR/data:/data
       - "/etc/localtime:/etc/localtime:ro"
     security_opt:
       - no-new-privileges:true
@@ -366,8 +426,8 @@ services:
       - TZ=$TZ
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.radarr-rtr.entrypoints=https"
-      - "traefik.http.routers.radarr-rtr.rule=Host(`radarr.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.radarr-rtr.entrypoints=websecure"
+      - "traefik.http.routers.radarr-rtr.rule=Host(`radarr.$DOMAINNAME_SERVER`)"
       ## Middlewares
       - "traefik.http.routers.radarr-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
@@ -380,11 +440,9 @@ services:
     container_name: sonarr
     networks:
       - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.109
     volumes:
       - $DOCKERDIR/appdata/sonarr:/config
-      - $DATADIR/data:/data/
+      - $DATADIR/data:/data
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -394,8 +452,8 @@ services:
       - TZ=$TZ
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.sonarr-rtr.entrypoints=https"
-      - "traefik.http.routers.sonarr-rtr.rule=Host(`sonarr.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.sonarr-rtr.entrypoints=websecure"
+      - "traefik.http.routers.sonarr-rtr.rule=Host(`sonarr.$DOMAINNAME_SERVER`)"
       ## Middlewares
       - "traefik.http.routers.sonarr-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
@@ -408,13 +466,9 @@ services:
     container_name: bazarr
     networks:
       - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.110
     volumes:
       - $DOCKERDIR/appdata/bazarr:/config
       - $DATADIR/data/media:/data/media
-     # - $DATADIR/data/media/movies:/movies
-     # - $DATADIR/data/media/series:/series
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -424,13 +478,91 @@ services:
       - TZ=$TZ
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.bazarr-rtr.entrypoints=https"
-      - "traefik.http.routers.bazarr-rtr.rule=Host(`bazarr.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.bazarr-rtr.entrypoints=websecure"
+      - "traefik.http.routers.bazarr-rtr.rule=Host(`bazarr.$DOMAINNAME_SERVER`)"
       ## Middlewares
       - "traefik.http.routers.bazarr-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.bazarr-rtr.service=bazarr-svc"
       - "traefik.http.services.bazarr-svc.loadbalancer.server.port=6767"
+
+# JDownloader2 - Download manager
+  jdownloader:
+    image: jlesage/jdownloader-2
+    container_name: jdownloader
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    volumes:
+      - $DATADIR/data/downloads/jdownloader:/data/downloads #/output?
+      - $DOCKERDIR/appdata/jdownloader:/config
+    environment:
+      USER_ID: $PUID
+      GROUP_ID: $PGID
+      TZ: $TZ
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.jdownloader-rtr.entrypoints=websecure"
+      - "traefik.http.routers.jdownloader-rtr.rule=Host(`jdown.$DOMAINNAME_SERVER`)"
+      # Middlewares
+      - "traefik.http.routers.jdownloader-rtr.middlewares=chain-authelia@file"
+      # HTTP Services
+      - "traefik.http.routers.jdownloader-rtr.service=jdownloader-svc"
+      - "traefik.http.services.jdownloader-svc.loadbalancer.server.port=5800"
+
+########### UTILITIES
+
+# Uptime Kuma - Uptime monitoring
+  uptime-kuma:
+    image: louislam/uptime-kuma
+    container_name: uptime-kuma
+    networks:
+      - t2_proxy
+      - socket_proxy
+      - default
+    volumes:
+      - $DOCKERDIR/appdata/uptime-kuma:/app/data
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.uptime-kuma-rtr.entrypoints=websecure"
+      - "traefik.http.routers.uptime-kuma-rtr.rule=Host(`kuma.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.uptime-kuma-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.uptime-kuma-rtr.service=uptime-kuma-svc"
+      - "traefik.http.services.uptime-kuma-svc.loadbalancer.server.port=3001"
+
+# File Browser - Web file browser
+  filebrowser:
+    image: filebrowser/filebrowser:s6
+    container_name: filebrowser
+    networks:
+      - t2_proxy
+    volumes:
+      - $DOCKERDIR/appdata/filebrowser/filebrowser.db:/database/filebrowser.db
+      - $DOCKERDIR/appdata/filebrowser/settings.json:/config/settings.json
+      - $USERDIR:/srv/home
+      - $DATADIR:/srv/media
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.filebrowser-rtr.entrypoints=websecure"
+      - "traefik.http.routers.filebrowser-rtr.rule=Host(`filebrowser.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.filebrowser-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.filebrowser-rtr.service=filebrowser-svc"
+      - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=80"
 
 # Smokeping - Network latency overwatch
   smokeping:
@@ -438,8 +570,6 @@ services:
     container_name: smokeping
     networks:
       - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.113
     volumes:
       - $DOCKERDIR/appdata/smokeping:/config
       - $DOCKERDIR/appdata/smokeping:/data
@@ -453,8 +583,8 @@ services:
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.smokeping-rtr.entrypoints=https"
-      - "traefik.http.routers.smokeping-rtr.rule=Host(`smokeping.$DOMAINNAME_CLOUD_SERVER`)"
+      - "traefik.http.routers.smokeping-rtr.entrypoints=websecure"
+      - "traefik.http.routers.smokeping-rtr.rule=Host(`smokeping.$DOMAINNAME_SERVER`)"
       - "traefik.http.routers.smokeping-rtr.tls=true"
       ## Middlewares
       - "traefik.http.routers.smokeping-rtr.middlewares=chain-authelia@file"
@@ -462,32 +592,61 @@ services:
       - "traefik.http.routers.smokeping-rtr.service=smokeping-svc"
       - "traefik.http.services.smokeping-svc.loadbalancer.server.port=80"
 
-# Uptime Kuma - Uptime monitoring
-  uptime-kuma:
-    image: louislam/uptime-kuma
-    container_name: uptime-kuma
-    networks:
-      - t2_proxy
-      - default
-      #t2_proxy:
-        #ipv4_address: 192.168.90.115
-      #default:
-    volumes:
-      - $DOCKERDIR/appdata/uptime-kuma:/app/data
-    restart: always
+
+########### TESTING
+
+  # Homepage - Application Dashboard
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
     security_opt:
       - no-new-privileges:true
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+      - socket_proxy
+    volumes:
+      - $DOCKERDIR/appdata/homepage:/app/config
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.homepage-rtr.entrypoints=websecure"
+      - "traefik.http.routers.homepage-rtr.rule=Host(`homepage.$DOMAINNAME_SERVER`)"
+      #- "traefik.http.routers.homepage-rtr.rule=Host(`$DOMAINNAME_HS`,`www.$DOMAINNAME_HS`)"
+      # Middlewares
+      - "traefik.http.routers.homepage-rtr.middlewares=chain-authelia@file"
+      # HTTP Services
+      - "traefik.http.routers.homepage-rtr.service=homepage-svc"
+      - "traefik.http.services.homepage-svc.loadbalancer.server.port=3000"
+
+# Jellyseer - Jellyfin Request Manager
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    volumes:
+      - $DOCKERDIR/appdata/jellyseer:/app/config
+    security_opt:
+      - no-new-privileges:true
+    environment:
+    - LOG_LEVEL=info
+    - TZ=$TZ
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.uptime-kuma-rtr.entrypoints=https"
-      - "traefik.http.routers.uptime-kuma-rtr.rule=Host(`kuma.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.uptime-kuma-rtr.tls=true"
+      - "traefik.http.routers.jellyseerr-rtr.entrypoints=websecure"
+      - "traefik.http.routers.jellyseerr-rtr.rule=Host(`jellyseerr.$DOMAINNAME_SERVER`)"
       ## Middlewares
-      - "traefik.http.routers.uptime-kuma-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.jellyseerr-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
-      - "traefik.http.routers.uptime-kuma-rtr.service=uptime-kuma-svc"
-      - "traefik.http.services.uptime-kuma-svc.loadbalancer.server.port=3001"
+      - "traefik.http.routers.jellyseerr-rtr.service=jellyseerr-svc"
+      - "traefik.http.services.jellyseerr-svc.loadbalancer.server.port=5055"
 
 # Guacamole - Clientless remote desktop
   guacamole:
@@ -495,8 +654,6 @@ services:
     container_name: guacamole
     networks:
       - t2_proxy
-      #t2_proxy:
-        #ipv4_address: 192.168.90.116
     volumes:
       - $DOCKERDIR/appdata/guacamole:/config
     restart: unless-stopped
@@ -505,36 +662,110 @@ services:
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
-      - "traefik.http.routers.guacamole-rtr.entrypoints=https"
-      - "traefik.http.routers.guacamole-rtr.rule=Host(`guacamole.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.guacamole-rtr.tls=true"
+      - "traefik.http.routers.guacamole-rtr.entrypoints=websecure"
+      - "traefik.http.routers.guacamole-rtr.rule=Host(`guacamole.$DOMAINNAME_SERVER`)"
       ## Middlewares
       - "traefik.http.routers.guacamole-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
       - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
       - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
 
-# File Browser - Web file browser
-  filebrowser:
-    image: filebrowser/filebrowser:s6
-    container_name: filebrowser
+# Guacd - Guacamole Server Daemon
+  guacd:
+    image: guacamole/guacd
+    container_name: guacd
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+# Mealie - Recipe manager
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:v1.3.2
+    container_name: mealie
+    restart: unless-stopped
     networks:
       - t2_proxy
+    deploy:
+      resources:
+        limits:
+          memory: 1000M
     volumes:
-      - $DOCKERDIR/appdata/filebrowser:/config
-      - $USERDIR:/srv
-      - $DATADIR:/srv/media
+      - $DOCKERDIR/appdata/mealie:/app/data/
     environment:
       - PUID=$PUID
       - PGID=$PGID
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.filebrowser-rtr.entrypoints=https"
-      - "traefik.http.routers.filebrowser-rtr.rule=Host(`filebrowser.$DOMAINNAME_CLOUD_SERVER`)"
-      - "traefik.http.routers.filebrowser-rtr.tls=true"
-      ## Middlewares
-      - "traefik.http.routers.filebrowser-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.filebrowser-rtr.service=filebrowser-svc"
-      - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=80"
+      - TZ=$TZ
+
+# Watchtower - Docker Container Auto-Updater
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    networks:
+      - socket_proxy
+
+# Endlessh - SSH Honeypot
+  endlessh:
+    image: lscr.io/linuxserver/endlessh:latest
+    container_name: endlessh
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+      - MSDELAY=10000 #optional
+      - MAXLINES=32 #optional
+      - MAXCLIENTS=4096 #optional
+      - LOGFILE=false #optional
+      - BINDFAMILY= #optional
+    volumes:
+      - $DOCKERDIR/appdata/endlessh:/config #optional
+    ports:
+      - 22:2222
+    restart: unless-stopped
+
+# Minecraft - Minecraft Modded Server
+  minecraft:
+    image: itzg/minecraft-server
+    container_name: minecraft
+    restart: always
+    ports:
+      - 25565:25565
+    environment:
+      UID: $PUID
+      GID: $PGID
+      EULA: "true"
+      TYPE: "FORGE"
+      FORGE_VERSION: "47.2.0"
+      VERSION: "1.20.1"
+      DIFFICULTY: "hard"
+      ALLOW_FLIGHT: "true"
+      VIEW_DISTANCE: "12"
+      INIT_MEMORY: "1G"
+      MAX_MEMORY: "12G"
+      USE_AIKAR_FLAGS: "true"
+      MAX_BUILD_HEIGHT: "320"
+      ONLINE_MODE: "false"
+      SERVER_NAME: "Corocraft"
+      SPAWN_PROTECTION: "16"
+      MODE: "survival"
+      ENABLE_WHITELIST: "true"
+      SNOOPER_ENABLED: "false"
+      REMOVE_OLD_MODS: "true"
+      MODS_FILE: "/extras/mods.txt"
+      DATAPACKS_FILE: "/extras/datapacks.txt"
+    volumes:
+      - $MINECRAFTDIR/forge/data:/data
+      - $MINECRAFTDIR/forge/data/mods:/mods
+      - $MINECRAFTDIR/forge/data/server_config/mods.txt:/extras/mods.txt
+      - $MINECRAFTDIR/forge/data/server_config/datapacks.txt:/extras/datapacks.txt
+      
+# OpenSpeedTest - Self-hosted Speed Testing
+  speedtest:
+    image: openspeedtest/latest
+    container_name: openspeedtest
+#MariaDB
+#Firefly III
+#Kavita reader
+#RClone
+#Healthcheks ls.io
+#Lychee
