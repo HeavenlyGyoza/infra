@@ -8,7 +8,7 @@ After=mnt-disk1.mount mnt-disk2.mount
 What=/mnt/disk*
 Where=/mnt/storage
 Type=fuse.mergerfs
-Options=defaults,nonempty,allow_other,use_ino,cache.files=off,moveonenospc=true,dropcacheonclose=true,minfreespace=200G,fsname=mergerfs
+Options=defaults,nonempty,allow_other,use_ino,cache.files=off,moveonenospc=true,category.create=mfs,dropcacheonclose=true,minfreespace=2G,fsname=mergerfs
 TimeoutSec=10s
 
 [Install]
