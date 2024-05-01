@@ -8,6 +8,7 @@ alias dclogs='sudo docker logs -tf --tail="50"'
 alias dcpull='sudo docker compose -f /home/amaterasu/docker/docker-compose.yml pull'
 alias dall='sudo docker ps -a'
 alias dprune='sudo docker system prune && sudo docker image prune && sudo docker volume prune'
+alias dbash='sudo docker exec -it'
 
 # NAVIGATION
 alias cd..='cd ..'
@@ -28,3 +29,7 @@ alias sshstop='systemctl stop ssh'
 alias sshrestart='systemctl restart ssh'
 alias sshstatus='systemctl status ssh'
 alias screencleanup='sudo /etc/init.d/screen-cleanup start'
+
+# MINECRAFT SERVER
+alias mcconsole='sudo docker exec -i minecraft rcon-cli'
+alias mccommand='sudo docker exec minecraft recon-cli'
