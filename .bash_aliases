@@ -22,6 +22,7 @@ alias .5='cd ../../../../..'
 alias sysupdate='sudo apt-get update && sudo apt-get upgrade'
 alias shutdown='sudo shutdown -h now'
 alias reboot='sudo reboot'
+alias sizedir='sudo du -sh'
 
 # SYSTEM SERVICES
 alias sshstart='systemctl start ssh'
