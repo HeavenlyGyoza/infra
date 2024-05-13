@@ -45,7 +45,7 @@ services:
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
       - --entrypoints.traefik.address=:8080
-      - --entrypoints.qbittorrent.address=:6881/tcp
+      #- --entrypoints.qbittorrent.address=:6881/tcp
       - --entrypoints.websecure.http.tls=true
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
@@ -202,7 +202,6 @@ services:
       - TASKS=1 # Portainer
       - VOLUMES=1 # Portainer
 
-
 # Portainer - WebUI for Docker containers
   portainer:
     container_name: portainer
@@ -301,18 +300,6 @@ services:
       - DOMAIN1_PROXIED=TRUE
       - DOCKER_HOST=tcp://socket-proxy:2375
 
-# Flaresolverr - Cloudflare DDosS-GUARD protection bypass
-  flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:latest
-    container_name: flaresolverr
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    environment:
-      - TZ=$TZ
-      - LOG_LEVEL=info
-      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
-
 ########### MEDIA
 
 # qBittorrent - Torrent Downloader
@@ -331,16 +318,16 @@ services:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
-      - WEBUI_PORT=8080
+      #- WEBUI_PORT=8080
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
       - "traefik.http.routers.qbittorrent-rtr.entrypoints=websecure"
       - "traefik.http.routers.qbittorrent-rtr.rule=Host(`qbitt.$DOMAINNAME_SERVER`)"
       ## TCP Routers
-      - "traefik.tcp.routers.qbittorrent-tcp.entrypoints=qbittorrent"
-      - "traefik.tcp.routers.qbittorrent-tcp.rule=HostSNI(`*`)" # Accepts all hostnames for TCP traffic
-      - "traefik.tcp.services.qbittorrent-tcp.loadbalancer.server.port=6881" # Adjust port if necessary
+      #- "traefik.tcp.routers.qbittorrent-tcp.entrypoints=qbittorrent"
+      #- "traefik.tcp.routers.qbittorrent-tcp.rule=HostSNI(`*`)" # Accepts all hostnames for TCP traffic
+      #- "traefik.tcp.services.qbittorrent-tcp.loadbalancer.server.port=6881" # Adjust port if necessary
       ## Middlewares
       - "traefik.http.routers.qbittorrent-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
@@ -513,6 +500,44 @@ services:
       - "traefik.http.routers.jdownloader-rtr.service=jdownloader-svc"
       - "traefik.http.services.jdownloader-svc.loadbalancer.server.port=5800"
 
+# Flaresolverr - Cloudflare DDosS-GUARD protection bypass
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    environment:
+      - TZ=$TZ
+      - LOG_LEVEL=info
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+
+# Jellyseer - Jellyfin Request Manager
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    volumes:
+      - $DOCKERDIR/appdata/jellyseer:/app/config
+    security_opt:
+      - no-new-privileges:true
+    environment:
+    - LOG_LEVEL=info
+    - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.jellyseerr-rtr.entrypoints=websecure"
+      - "traefik.http.routers.jellyseerr-rtr.rule=Host(`jellyseerr.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.jellyseerr-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.jellyseerr-rtr.service=jellyseerr-svc"
+      - "traefik.http.services.jellyseerr-svc.loadbalancer.server.port=5055"
+
+
 ########### UTILITIES
 
 # Uptime Kuma - Uptime monitoring
@@ -545,6 +570,7 @@ services:
     container_name: filebrowser
     networks:
       - t2_proxy
+    restart: unless-stopped
     volumes:
       - $DOCKERDIR/appdata/filebrowser/filebrowser.db:/database/filebrowser.db
       - $DOCKERDIR/appdata/filebrowser/settings.json:/config/settings.json
@@ -592,6 +618,122 @@ services:
       - "traefik.http.routers.smokeping-rtr.service=smokeping-svc"
       - "traefik.http.services.smokeping-svc.loadbalancer.server.port=80"
 
+# Scrutiny - Hard Drive Health Check Monitoring
+  scrutiny:
+    image: ghcr.io/analogj/scrutiny:master-omnibus
+    container_name: scrutiny
+    security_opt:
+    - no-new-privileges:true
+    restart: always
+    cap_add:
+      - SYS_RAWIO
+      - SYS_ADMIN
+    networks:
+      - t2_proxy
+    # ports:
+    #   - "8080:8080" # webapp
+    #   - "8086:8086" # influxDB admin
+    volumes:
+      - /run/udev:/run/udev:ro
+      - $DOCKERDIR/appdata/scrutiny:/opt/scrutiny/config
+      - $DOCKERDIR/appdata/scrutiny/influxdb:/opt/scrutiny/influxdb
+    devices:
+      - "/dev/nvme0"
+      - "/dev/sda"
+      - "/dev/sdb"
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.scrutiny-rtr.entrypoints=websecure"
+      - "traefik.http.routers.scrutiny-rtr.rule=Host(`scrutiny.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.scrutiny-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.scrutiny-rtr.service=scrutiny-svc"
+      - "traefik.http.services.scrutiny-svc.loadbalancer.server.port=8080"
+
+# Speedtest Tracker - Internet Speed Tracker
+  speedtest:
+    image: henrywhitaker3/speedtest-tracker
+    container_name: speedtest
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    volumes:
+      - $DOCKERDIR/appdata/speedtest:/config
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+      - OOKLA_EULA_GDPR=true
+    logging:
+      driver: "json-file"
+      options:
+          max-file: "10"
+          max-size: "200k"
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.speedtest-rtr.entrypoints=websecure"
+      - "traefik.http.routers.speedtest-rtr.rule=Host(`speedtest.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.speedtest-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.speedtest-rtr.service=speedtest-svc"
+      - "traefik.http.services.speedtest-svc.loadbalancer.server.port=80"
+
+# Endlessh - SSH Honeypot
+  endlessh-go:
+    container_name: endlessh
+    image: shizunge/endlessh-go:latest
+    restart: always
+    command:
+      - -interval_ms=1000
+      - -logtostderr
+      - -v=1
+      - -enable_prometheus
+      - -geoip_supplier=ip-api
+    # networks:
+    #   - example_network
+    ports:
+      - 22:2222 # SSH port
+      #- 127.0.0.1:2112:2112 # Prometheus metrics port
+
+
+########### MISC
+
+# Mealie - Recipe manager
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:v1.3.2
+    container_name: mealie
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    deploy:
+      resources:
+        limits:
+          memory: 1000M
+    volumes:
+      - $DOCKERDIR/appdata/mealie:/app/data/
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.mealie-rtr.entrypoints=websecure"
+      - "traefik.http.routers.mealie-rtr.rule=Host(`mealie.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.mealie-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.mealie-rtr.service=mealie-svc"
+      - "traefik.http.services.mealie-svc.loadbalancer.server.port=9000"
+
+
+
 
 ########### TESTING
 
@@ -616,37 +758,12 @@ services:
       # HTTP Routers
       - "traefik.http.routers.homepage-rtr.entrypoints=websecure"
       - "traefik.http.routers.homepage-rtr.rule=Host(`homepage.$DOMAINNAME_SERVER`)"
-      #- "traefik.http.routers.homepage-rtr.rule=Host(`$DOMAINNAME_HS`,`www.$DOMAINNAME_HS`)"
+      #- "traefik.http.routers.homepage-rtr.rule=Host(`$DOMAINNAME_SERVER`,`www.$DOMAINNAME_SERVER`)"
       # Middlewares
       - "traefik.http.routers.homepage-rtr.middlewares=chain-authelia@file"
       # HTTP Services
       - "traefik.http.routers.homepage-rtr.service=homepage-svc"
       - "traefik.http.services.homepage-svc.loadbalancer.server.port=3000"
-
-# Jellyseer - Jellyfin Request Manager
-  jellyseerr:
-    image: fallenbagel/jellyseerr:latest
-    container_name: jellyseerr
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    volumes:
-      - $DOCKERDIR/appdata/jellyseer:/app/config
-    security_opt:
-      - no-new-privileges:true
-    environment:
-    - LOG_LEVEL=info
-    - TZ=$TZ
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.jellyseerr-rtr.entrypoints=websecure"
-      - "traefik.http.routers.jellyseerr-rtr.rule=Host(`jellyseerr.$DOMAINNAME_SERVER`)"
-      ## Middlewares
-      - "traefik.http.routers.jellyseerr-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.jellyseerr-rtr.service=jellyseerr-svc"
-      - "traefik.http.services.jellyseerr-svc.loadbalancer.server.port=5055"
 
 # Guacamole - Clientless remote desktop
   guacamole:
@@ -678,24 +795,6 @@ services:
       - no-new-privileges:true
     restart: unless-stopped
 
-# Mealie - Recipe manager
-  mealie:
-    image: ghcr.io/mealie-recipes/mealie:v1.3.2
-    container_name: mealie
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-    deploy:
-      resources:
-        limits:
-          memory: 1000M
-    volumes:
-      - $DOCKERDIR/appdata/mealie:/app/data/
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-
 # Watchtower - Docker Container Auto-Updater
   watchtower:
     image: containrrr/watchtower
@@ -703,25 +802,6 @@ services:
     restart: unless-stopped
     networks:
       - socket_proxy
-
-# Endlessh - SSH Honeypot
-  endlessh:
-    image: lscr.io/linuxserver/endlessh:latest
-    container_name: endlessh
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-      - MSDELAY=10000 #optional
-      - MAXLINES=32 #optional
-      - MAXCLIENTS=4096 #optional
-      - LOGFILE=false #optional
-      - BINDFAMILY= #optional
-    volumes:
-      - $DOCKERDIR/appdata/endlessh:/config #optional
-    ports:
-      - 22:2222
-    restart: unless-stopped
 
 # Minecraft - Minecraft Modded Server
   minecraft:
@@ -760,12 +840,57 @@ services:
       - $MINECRAFTDIR/forge/data/server_config/datapacks.txt:/extras/datapacks.txt
       
 # OpenSpeedTest - Self-hosted Speed Testing
-  speedtest:
+  openspeedtest:
     image: openspeedtest/latest
     container_name: openspeedtest
-#MariaDB
-#Firefly III
-#Kavita reader
-#RClone
-#Healthcheks ls.io
-#Lychee
+
+# MKVToolNix - MKV File Editor
+  mkvtoolnix:
+    image: jlesage/mkvtoolnix
+    container_name: mkvtoolnix
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    volumes:
+      - $DOCKERDIR/appdata/mkvtoolnix:/config
+      - $DATADIR/data/downloads:/storage:rw
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.mkvtoolnix-rtr.entrypoints=websecure"
+      - "traefik.http.routers.mkvtoolnix-rtr.rule=Host(`mkvtoolnix.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.mkvtoolnix-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.mkvtoolnix-rtr.service=mkvtoolnix-svc"
+      - "traefik.http.services.mkvtoolnix-svc.loadbalancer.server.port=5800"
+
+# MKVCleaver - MKV File Extractor
+  mkvcleaver:
+    image: jlesage/mkvcleaver
+    container_name: mkvcleaver
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    volumes:
+      - $DOCKERDIR/appdata/mkvcleaver:/config
+      - $DATADIR/data/downloads:/storage:rw
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.mkvcleaver-rtr.entrypoints=websecure"
+      - "traefik.http.routers.mkvcleaver-rtr.rule=Host(`mkvcleaver.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.mkvcleaver-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.mkvcleaver-rtr.service=mkvcleaver-svc"
+      - "traefik.http.services.mkvcleaver-svc.loadbalancer.server.port=5800"
+
+# Gluetun - VPN
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
