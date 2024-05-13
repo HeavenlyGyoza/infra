@@ -12,13 +12,11 @@ Currently it sets up:</p>
     <li> Automate deployment via Ansible playbook (low priority)</li>
     <li> Configure and deploy the rest of my docker stack </li>
     <ul>
-        <li>Endlessh</li>
         <li>Homepage to replace Heimdall</li>
-        <li>Jellyseer (finish config)</li>
         <li>Guacamole for remote desktop</li>
         <li>Minecraft server (testing)</li>
-        <li>Mealie</li>
         <li>Watchtower</li>
         <li>Paperless-ngx (rsync proton)</li>
+        <li>Gluetun to VPN qbittorrent</li>
     </ul>
 <ul>
