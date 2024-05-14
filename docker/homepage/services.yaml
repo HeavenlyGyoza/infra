@@ -1,0 +1,99 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/latest/configs/services
+
+- CORE:
+    - Traefik:
+        icon: traefik.svg
+        href: https://traefik.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Reverse proxy
+    
+    - Dozzle:
+        icon: dozzle.svg
+        href: https://dozzle.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Real-time log viewer
+
+    - Portainer:
+        icon: portainer.svg
+        href: https://portainer.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Web UI docker container management
+
+- MEDIA:
+    - Jellyfin:
+        icon: jellyfin.svg
+        href: https://jellyfin.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Self-hosted media server
+    
+    - Jellyseerr:
+        icon: jellyseerr.svg
+        href: https://jellyfin.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Media request management
+
+    - qBittorrent:
+        icon: qbittorrent.svg
+        href: https://qbitt.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Torrent client
+    
+    - Radarr:
+        icon: radarr.svg
+        href: https://radarr.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Automated movie management
+
+    - Sonarr:
+        icon: sonarr.svg
+        href: https://sonarr.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Automated series management
+    
+    - Prowlarr:
+        icon: prowlarr.svg
+        href: https://prowlarr.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Indexer manager
+    
+    - Bazarr:
+        icon: bazarr.svg
+        href: https://bazarr.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Automated subtitles management
+    
+    - JDownloader2:
+        icon: jdownloader2.png
+        href: https://jdown.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Download manager
+
+
+- UTILITIES:
+    - Uptime Kuma:
+        icon: uptime-kuma.svg
+        href: https://kuma.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Self-hosted uptime monitoring
+
+    - Scrutiny:
+        icon: scrutiny.svg
+        href: https://scrutiny.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Hard-drive health monitoring
+
+    - Speedtest Tracker:
+        icon: speedtest-tracker-old.png
+        href: https://speedtest.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Speedtest monitoring
+    
+    - Filebrowser:
+        icon: filebrowser.svg
+        href: https://filebrowser.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Web file managing interface
+
+    - Smokeping:
+        icon: smokeping.png
+        href: https://smokeping.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Network latency monitoring
+
+
+- MISC: 
+    - Mealie:
+        icon: mealie.svg
+        href: https://mealie.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Recipe manager
+
+- GAME SERVERS:
+    - Minecraft:
+        icon: minecraft.svg
+        description: Forge server

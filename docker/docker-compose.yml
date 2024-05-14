@@ -753,6 +753,7 @@ services:
       TZ: $TZ
       PUID: $PUID
       PGID: $PGID
+      HOMEPAGE_VAR_DOMAINNAME: $DOMAINNAME_SERVER
     labels:
       - "traefik.enable=true"
       # HTTP Routers
