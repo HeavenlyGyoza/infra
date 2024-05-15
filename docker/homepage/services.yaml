@@ -7,6 +7,9 @@
         icon: traefik.svg
         href: https://traefik.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Reverse proxy
+        # widget:
+        #     type: traefik
+        #     url: https://traefik:8080
     
     - Dozzle:
         icon: dozzle.svg
@@ -17,47 +20,84 @@
         icon: portainer.svg
         href: https://portainer.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Web UI docker container management
+        widget:
+            type: portainer
+            url: https://portainer:9443
+            env: 1
+            key: {{HOMEPAGE_VAR_PORTAINER_API_KEY}}
 
 - MEDIA:
     - Jellyfin:
         icon: jellyfin.svg
         href: https://jellyfin.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Self-hosted media server
+        widget:
+            type: jellyfin
+            url: https://jellyfin:8096
+            key: {{HOMEPAGE_VAR_JELLYFIN_API_KEY}}
     
     - Jellyseerr:
         icon: jellyseerr.svg
-        href: https://jellyfin.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        href: https://jellyseerr.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Media request management
+        widget:
+            type: jellyseerr
+            url: http://jellyseerr:5055
+            key: {{HOMEPAGE_VAR_JELLYSEERR_API_KEY}}
 
     - qBittorrent:
         icon: qbittorrent.svg
         href: https://qbitt.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Torrent client
+        widget:
+            type: qbittorrent
+            url: http://qbitorrent:8080
+            username: {{HOMEPAGE_VAR_QBITT_USERNAME}}
+            password: {{HOMEPAGE_VAR_QBITT_PW}}
     
     - Radarr:
         icon: radarr.svg
         href: https://radarr.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Automated movie management
+        widget:
+            type: radarr
+            url: http://radarr:7878
+            key: {{HOMEPAGE_VAR_RADARR_API_KEY}}
 
     - Sonarr:
         icon: sonarr.svg
         href: https://sonarr.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Automated series management
+        widget:
+            type: sonarr
+            url: http://radarr:8989
+            key: {{HOMEPAGE_VAR_SONARR_API_KEY}}
     
     - Prowlarr:
         icon: prowlarr.svg
         href: https://prowlarr.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Indexer manager
+        widget:
+            type: prowlarr
+            url: http://prowlarr:9696
+            key: {{HOMEPAGE_VAR_PROWLARR_API_KEY}}
     
     - Bazarr:
         icon: bazarr.svg
         href: https://bazarr.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Automated subtitles management
+        widget:
+            type: bazarr
+            url: http://bazarr:6767
+            key: {{HOMEPAGE_VAR_BAZARR_API_KEY}}
     
     - JDownloader2:
         icon: jdownloader2.png
         href: https://jdown.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Download manager
+        # widget:
+        #     type: jdownloader
+        #     client: jdownloader
 
 
 - UTILITIES:
@@ -65,16 +105,26 @@
         icon: uptime-kuma.svg
         href: https://kuma.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Self-hosted uptime monitoring
+        # widget:
+        #     type: uptimekuma
+        #     url: http:uptime-kuma
+        #     slug: dashboard
 
     - Scrutiny:
         icon: scrutiny.svg
         href: https://scrutiny.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Hard-drive health monitoring
+        widget:
+            type: scrutiny
+            url: http://scrutiny:8080
 
     - Speedtest Tracker:
         icon: speedtest-tracker-old.png
         href: https://speedtest.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Speedtest monitoring
+        widget:
+            type: speedtest
+            url: http://speedtest:80
     
     - Filebrowser:
         icon: filebrowser.svg
@@ -92,8 +142,14 @@
         icon: mealie.svg
         href: https://mealie.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Recipe manager
+        widget:
+            type: mealie
+            url: http://mealie:9000
 
 - GAME SERVERS:
     - Minecraft:
         icon: minecraft.svg
         description: Forge server
+        widget:
+            type: minecraft
+            url: udp://minecraft:25565

@@ -45,7 +45,6 @@ services:
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
       - --entrypoints.traefik.address=:8080
-      #- --entrypoints.qbittorrent.address=:6881/tcp
       - --entrypoints.websecure.http.tls=true
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
@@ -314,6 +313,8 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
+    ports:
+      - 6881:6881
     environment:
       - PUID=$PUID
       - PGID=$PGID
@@ -324,10 +325,6 @@ services:
       ## HTTP Routers
       - "traefik.http.routers.qbittorrent-rtr.entrypoints=websecure"
       - "traefik.http.routers.qbittorrent-rtr.rule=Host(`qbitt.$DOMAINNAME_SERVER`)"
-      ## TCP Routers
-      #- "traefik.tcp.routers.qbittorrent-tcp.entrypoints=qbittorrent"
-      #- "traefik.tcp.routers.qbittorrent-tcp.rule=HostSNI(`*`)" # Accepts all hostnames for TCP traffic
-      #- "traefik.tcp.services.qbittorrent-tcp.loadbalancer.server.port=6881" # Adjust port if necessary
       ## Middlewares
       - "traefik.http.routers.qbittorrent-rtr.middlewares=chain-authelia@file"
       ## HTTP Services
@@ -753,7 +750,16 @@ services:
       TZ: $TZ
       PUID: $PUID
       PGID: $PGID
-      HOMEPAGE_VAR_DOMAINNAME: $DOMAINNAME_SERVER
+      HOMEPAGE_VAR_DOMAINNAME_SERVER: $DOMAINNAME_SERVER
+      HOMEPAGE_VAR_JELLYFIN_API_KEY: $JELLYFIN_API_KEY
+      HOMEPAGE_VAR_JELLYSEERR_API_KEY: $JELLYSEERR_API_KEY
+      HOMEPAGE_VAR_RADARR_API_KEY: $RADARR_API_KEY
+      HOMEPAGE_VAR_SONARR_API_KEY: $SONARR_API_KEY
+      HOMEPAGE_VAR_PROWLARR_API_KEY: $PROWLARR_API_KEY
+      HOMEPAGE_VAR_BAZARR_API_KEY: $BAZARR_API_KEY
+      HOMEPAGE_VAR_PORTAINER_API_KEY: $PORTAINER_API_KEY
+      HOMEPAGE_VAR_QBITT_USERNAME: $QBITT_USERNAME
+      HOMEPAGE_VAR_QBITT_PW: $QBITT_PW
     labels:
       - "traefik.enable=true"
       # HTTP Routers
