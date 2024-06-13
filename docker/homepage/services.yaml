@@ -32,9 +32,14 @@
         href: https://jellyfin.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Self-hosted media server
         widget:
-            type: jellyfin
-            url: https://jellyfin:8096
-            key: {{HOMEPAGE_VAR_JELLYFIN_API_KEY}}
+          type: jellyfin
+          url: http://jellyfin:8096
+          key: {{HOMEPAGE_VAR_JELLYFIN_API_KEY}}
+          enableBlocks: true # optional, defaults to false
+          enableNowPlaying: true # optional, defaults to true
+          enableUser: true # optional, defaults to false
+          showEpisodeNumber: false # optional, defaults to false
+          expandOneStreamToTwoRows: true # optional, defaults to true
     
     - Jellyseerr:
         icon: jellyseerr.svg
@@ -50,10 +55,11 @@
         href: https://qbitt.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Torrent client
         widget:
-            type: qbittorrent
-            url: http://qbitorrent:8080
-            username: {{HOMEPAGE_VAR_QBITT_USERNAME}}
-            password: {{HOMEPAGE_VAR_QBITT_PW}}
+          type: qbittorrent
+          url: http://qbittorrent:8080
+          username: {{HOMEPAGE_VAR_QBITT_USERNAME}}
+          password: {{HOMEPAGE_VAR_QBITT_PW}}
+
     
     - Radarr:
         icon: radarr.svg
@@ -69,9 +75,9 @@
         href: https://sonarr.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Automated series management
         widget:
-            type: sonarr
-            url: http://radarr:8989
-            key: {{HOMEPAGE_VAR_SONARR_API_KEY}}
+          type: sonarr
+          url: http://sonarr:8989
+          key: {{HOMEPAGE_VAR_SONARR_API_KEY}}
     
     - Prowlarr:
         icon: prowlarr.svg
@@ -143,8 +149,9 @@
         href: https://mealie.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Recipe manager
         widget:
-            type: mealie
-            url: http://mealie:9000
+          type: mealie
+          url: http://mealie:9000
+          key: {{HOMEPAGE_VAR_MEALIE_API_KEY}}
 
 - GAME SERVERS:
     - Minecraft:
