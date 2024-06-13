@@ -703,7 +703,7 @@ services:
 
 # Mealie - Recipe manager
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v1.3.2
+    image: ghcr.io/mealie-recipes/mealie
     container_name: mealie
     restart: unless-stopped
     networks:
@@ -734,7 +734,7 @@ services:
 
 ########### TESTING
 
-  # Homepage - Application Dashboard
+# Homepage - Application Dashboard
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
@@ -760,6 +760,7 @@ services:
       HOMEPAGE_VAR_PORTAINER_API_KEY: $PORTAINER_API_KEY
       HOMEPAGE_VAR_QBITT_USERNAME: $QBITT_USERNAME
       HOMEPAGE_VAR_QBITT_PW: $QBITT_PW
+      HOMEPAGE_VAR_MEALIE_API_KEY: $MEALIE_API_KEY
     labels:
       - "traefik.enable=true"
       # HTTP Routers
