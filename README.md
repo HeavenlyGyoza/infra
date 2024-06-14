@@ -2,8 +2,15 @@
 <p>This repository includes the files and configurations with the aim to quickly deploy my server on an Ubuntu or other Debian-based distro to idempotency by following the principles of IaC.<brA>
 Currently it sets up:</p>
 <ul>
-    <li>Docker-Compose stack</li>
-    <li>Mount units for external drives since editing fstab is not possible with my current setup</li>
+    <li>Docker-Compose stack
+        <ul>Traefik 2 as reverse proxy</ul>
+        <ul>Authelia authenthication service</ul>
+        <ul>Docker Scoket proxy and Docker Secrets for security best practices</ul>
+        <ul>Jellyfin media server and other media apps</ul>
+        <ul>Monitoring apps (Uptime kuma, Scrutiny, etc.)</ul>
+        <ul>Utilities and other miscellaneous apps (Filebrowser, SSH Honeypot, Mealie</ul>
+    </li>
+    <li>Indiviudal mount units for external drives since using /etc/fstab is not an option with my current setup</li>
     <li>Bash aliases</li>
     <li>An ed25519 public key to harden SSH security</li>
 </ul>
