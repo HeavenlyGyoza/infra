@@ -3,12 +3,14 @@
 Currently it sets up:</p>
 <ul>
     <li>Docker-Compose stack
-        <ul>Traefik 2 as reverse proxy</ul>
-        <ul>Authelia authenthication service</ul>
-        <ul>Docker Scoket proxy and Docker Secrets for security best practices</ul>
-        <ul>Jellyfin media server and other media apps</ul>
-        <ul>Monitoring apps (Uptime kuma, Scrutiny, etc.)</ul>
-        <ul>Utilities and other miscellaneous apps (Filebrowser, SSH Honeypot, Mealie</ul>
+        <ul>
+            <li>Traefik 2 as reverse proxy</li>
+            <li>Authelia authenthication service</li>
+            <li>Docker Scoket proxy and Docker Secrets for security best practices</li>
+            <li>Jellyfin media server and other media apps</li>
+            <li>Monitoring apps (Uptime kuma, Scrutiny, etc.)</li>
+            <li>Utilities and other miscellaneous apps (Filebrowser, SSH Honeypot, Mealie</li>
+        </ul>
     </li>
     <li>Indiviudal mount units for external drives since using /etc/fstab is not an option with my current setup</li>
     <li>Bash aliases</li>
