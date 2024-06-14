@@ -6,7 +6,7 @@ Currently it sets up:</p>
         <ul>
             <li>Traefik 2 as reverse proxy</li>
             <li>Authelia authenthication service</li>
-            <li>Docker Scoket proxy and Docker Secrets for security best practices</li>
+            <li>Docker Socket proxy and Docker Secrets for security best practices</li>
             <li>Jellyfin media server and other media apps</li>
             <li>Monitoring apps (Uptime kuma, Scrutiny, etc.)</li>
             <li>Utilities and other miscellaneous apps (Filebrowser, SSH Honeypot, Mealie</li>
