@@ -137,7 +137,7 @@ services:
       - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
       - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
       - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
-      - DOMAINNAME_SERVER
+      - DOMAINNAME_SERVER=$DOMAINNAME_SERVER
     secrets:
       - authelia_jwt_secret
       - authelia_storage_encryption_key
