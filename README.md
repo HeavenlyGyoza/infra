@@ -12,7 +12,7 @@ Currently it sets up:</p>
             <li>Utilities and other miscellaneous apps (Filebrowser, SSH Honeypot, Mealie</li>
         </ul>
     </li>
-    <li>Indiviudal mount units for external drives since using /etc/fstab is not an option with my current setup</li>
+    <li>Individual mount units for external drives since using /etc/fstab is not an option with my current setup</li>
     <li>Bash aliases</li>
     <li>An ed25519 public key to harden SSH security</li>
 </ul>
@@ -22,6 +22,7 @@ Currently it sets up:</p>
     <li> Configure and deploy the rest of my docker stack </li>
     <ul>
         <li>Homepage to replace Heimdall</li>
+        <li>Gatus to replace Uptime Kuma</li>
         <li>Guacamole for remote desktop</li>
         <li>Minecraft server (testing)</li>
         <li>Watchtower</li>
