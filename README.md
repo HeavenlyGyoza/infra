@@ -9,7 +9,7 @@ Currently it sets up:</p>
             <li>Docker Scoket proxy and Docker Secrets for security best practices</li>
             <li>Jellyfin media server and other media apps</li>
             <li>Monitoring apps (Uptime kuma, Scrutiny, etc.)</li>
-            <li>Utilities and other miscellaneous apps (Filebrowser, SSH Honeypot, Mealie</li>
+            <li>Utilities and other miscellaneous apps (Filebrowser, SSH Honeypot, Mealie)</li>
         </ul>
     </li>
     <li>Indiviudal mount units for external drives since using /etc/fstab is not an option with my current setup</li>
@@ -23,7 +23,6 @@ Currently it sets up:</p>
     <ul>
         <li>Homepage to replace Heimdall</li>
         <li>Guacamole for remote desktop</li>
-        <li>Minecraft server (testing)</li>
         <li>Watchtower</li>
         <li>Paperless-ngx (rsync proton)</li>
         <li>Gluetun to VPN qbittorrent</li>
