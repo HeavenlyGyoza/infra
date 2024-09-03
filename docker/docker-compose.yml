@@ -366,7 +366,7 @@ services:
 
 # Prowlarr - Torrent proxy
   prowlarr:
-    image: linuxserver/prowlarr:develop
+    image: linuxserver/prowlarr:latest
     container_name: prowlarr
     networks:
       - t2_proxy
@@ -813,39 +813,45 @@ services:
 
 # Minecraft - Minecraft Modded Server
   minecraft:
-    image: itzg/minecraft-server
+    image: itzg/minecraft-server:java21-graalvm
     container_name: minecraft
     restart: always
+    networks:
+      - t2_proxy
     ports:
-      - 25565:25565
+      - "25565:25565"
     environment:
-      UID: $PUID
-      GID: $PGID
-      EULA: "true"
-      TYPE: "FORGE"
-      FORGE_VERSION: "47.2.0"
+      EULA: "TRUE"
+      TYPE: "FABRIC"
       VERSION: "1.20.1"
-      DIFFICULTY: "hard"
-      ALLOW_FLIGHT: "true"
+      DIFFICULTY: "HARD"
+      ALLOW_FLIGHT: "TRUE"
       VIEW_DISTANCE: "12"
+      SIMULATION_DISTANCE: "12"
       INIT_MEMORY: "1G"
       MAX_MEMORY: "12G"
-      USE_AIKAR_FLAGS: "true"
+      USE_AIKAR_FLAGS: "TRUE"
       MAX_BUILD_HEIGHT: "320"
-      ONLINE_MODE: "false"
-      SERVER_NAME: "Corocraft"
+      ONLINE_MODE: "FALSE"
+      SERVER_NAME: $MC_SERVER_NAME
       SPAWN_PROTECTION: "16"
-      MODE: "survival"
-      ENABLE_WHITELIST: "true"
-      SNOOPER_ENABLED: "false"
-      REMOVE_OLD_MODS: "true"
-      MODS_FILE: "/extras/mods.txt"
-      DATAPACKS_FILE: "/extras/datapacks.txt"
+      MODE: "SURVIVAL"
+      ENABLE_WHITELIST: "TRUE"
+      SNOOPER_ENABLED: "FALSE"
+      MOD_PLATFORM: "AUTO_CURSEFORGE"
+      CF_API_KEY: ${CF_API_KEY}
+      CF_SLUG: "prominence-2-rpg"
+      CF_FORCE_SYNCHRONIZE: "TRUE"
+      CF_EXCLUDE_MODS: |
+         simple-discord-rpc
+      CURSEFORGE_FILES: |
+        craterlib@2.0.3
+        luna
+        chunky-pregenerator
     volumes:
-      - $MINECRAFTDIR/forge/data:/data
-      - $MINECRAFTDIR/forge/data/mods:/mods
-      - $MINECRAFTDIR/forge/data/server_config/mods.txt:/extras/mods.txt
-      - $MINECRAFTDIR/forge/data/server_config/datapacks.txt:/extras/datapacks.txt
+        - $MINECRAFTDIR/forge/data:/data
+        - $MINECRAFTDIR/forge/data/mods:/mods
+
       
 # OpenSpeedTest - Self-hosted Speed Testing
   openspeedtest:
