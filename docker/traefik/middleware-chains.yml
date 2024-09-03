@@ -5,7 +5,7 @@ http:
         middlewares:
           - middlewares-rate-limit
           - middlewares-https-redirectscheme
-          - middlewares-secure-headers
+          #- middlewares-secure-headers
           - middlewares-compress
 
     chain-authelia:
