@@ -111,10 +111,6 @@
         icon: uptime-kuma.svg
         href: https://kuma.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Self-hosted uptime monitoring
-        # widget:
-        #     type: uptimekuma
-        #     url: http:uptime-kuma
-        #     slug: dashboard
 
     - Scrutiny:
         icon: scrutiny.svg
@@ -156,7 +152,7 @@
 - GAME SERVERS:
     - Minecraft:
         icon: minecraft.svg
-        description: Forge server
+        description: Modded server
         widget:
-            type: minecraft
-            url: udp://minecraft:25565
+          type: minecraft
+          url: tcp://minecraft:25565
