@@ -740,6 +740,48 @@ services:
       - "traefik.http.services.mealie-svc.loadbalancer.server.port=9000"
 
 
+########### GAME SERVERS
+
+# Minecraft - Minecraft Modded Server
+  minecraft:
+    image: itzg/minecraft-server:java21-graalvm
+    container_name: minecraft
+    restart: always
+    networks:
+      - t2_proxy
+    ports:
+      - "25565:25565"
+    environment:
+      EULA: "TRUE"
+      TYPE: "FABRIC"
+      VERSION: "1.20.1"
+      DIFFICULTY: "HARD"
+      ALLOW_FLIGHT: "TRUE"
+      VIEW_DISTANCE: "12"
+      SIMULATION_DISTANCE: "12"
+      INIT_MEMORY: "1G"
+      MAX_MEMORY: "12G"
+      USE_AIKAR_FLAGS: "TRUE"
+      MAX_BUILD_HEIGHT: "320"
+      ONLINE_MODE: "FALSE"
+      SERVER_NAME: $MC_SERVER_NAME
+      SPAWN_PROTECTION: "16"
+      MODE: "SURVIVAL"
+      ENABLE_WHITELIST: "TRUE"
+      SNOOPER_ENABLED: "FALSE"
+      MOD_PLATFORM: "AUTO_CURSEFORGE"
+      CF_API_KEY: ${CF_API_KEY}
+      CF_SLUG: "prominence-2-rpg"
+      CF_FORCE_SYNCHRONIZE: "TRUE"
+      CF_EXCLUDE_MODS: |
+         simple-discord-rpc
+      CURSEFORGE_FILES: |
+        craterlib@2.0.3
+        luna
+        chunky-pregenerator
+    volumes:
+        - $MINECRAFTDIR/forge/data:/data
+        - $MINECRAFTDIR/forge/data/mods:/mods
 
 
 ########### TESTING
@@ -821,48 +863,6 @@ services:
     networks:
       - socket_proxy
 
-# Minecraft - Minecraft Modded Server
-  minecraft:
-    image: itzg/minecraft-server:java21-graalvm
-    container_name: minecraft
-    restart: always
-    networks:
-      - t2_proxy
-    ports:
-      - "25565:25565"
-    environment:
-      EULA: "TRUE"
-      TYPE: "FABRIC"
-      VERSION: "1.20.1"
-      DIFFICULTY: "HARD"
-      ALLOW_FLIGHT: "TRUE"
-      VIEW_DISTANCE: "12"
-      SIMULATION_DISTANCE: "12"
-      INIT_MEMORY: "1G"
-      MAX_MEMORY: "12G"
-      USE_AIKAR_FLAGS: "TRUE"
-      MAX_BUILD_HEIGHT: "320"
-      ONLINE_MODE: "FALSE"
-      SERVER_NAME: $MC_SERVER_NAME
-      SPAWN_PROTECTION: "16"
-      MODE: "SURVIVAL"
-      ENABLE_WHITELIST: "TRUE"
-      SNOOPER_ENABLED: "FALSE"
-      MOD_PLATFORM: "AUTO_CURSEFORGE"
-      CF_API_KEY: ${CF_API_KEY}
-      CF_SLUG: "prominence-2-rpg"
-      CF_FORCE_SYNCHRONIZE: "TRUE"
-      CF_EXCLUDE_MODS: |
-         simple-discord-rpc
-      CURSEFORGE_FILES: |
-        craterlib@2.0.3
-        luna
-        chunky-pregenerator
-    volumes:
-        - $MINECRAFTDIR/forge/data:/data
-        - $MINECRAFTDIR/forge/data/mods:/mods
-
-      
 # OpenSpeedTest - Self-hosted Speed Testing
   openspeedtest:
     image: openspeedtest/latest
