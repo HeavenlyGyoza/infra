@@ -1,0 +1,12 @@
+[Unit]
+Description=Mount mergerfs disk3 (/mnt/disk3)
+
+[Mount]
+What=/dev/disk/by-uuid/583abf7a-9ae9-4c94-ba4a-eedbe4ea00d5
+Where=/mnt/disk3
+Type=ext4
+Options=defaults,rw,noatime,nofail
+TimeoutSec=10s
+
+[Install]
+WantedBy=multi-user.target
