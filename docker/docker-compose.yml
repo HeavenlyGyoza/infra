@@ -344,8 +344,7 @@ services:
       - $DATADIR/data/media/anime:/data/anime
       - $DATADIR/temp/appdata/jellyfin/metadata:/config/metadata
     devices:
-      - /dev/dri/card0:/dev/dri/card0
-      - /dev/dri/renderD128:/dev/dri/renderD128
+      - /dev/dri:/dev/dri
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
@@ -353,6 +352,7 @@ services:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
+      - DOCKER_MODS=linuxserver/mods:jellyfin-opencl-intel
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
