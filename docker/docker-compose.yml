@@ -661,25 +661,25 @@ services:
 
 # Speedtest Tracker - Internet Speed Tracker
   speedtest:
-    image: henrywhitaker3/speedtest-tracker
-    container_name: speedtest
+    image: lscr.io/linuxserver/speedtest-tracker
+    container_name: speedtest-tracker
+    restart: unless-stopped
     security_opt:
     - no-new-privileges:true
-    restart: unless-stopped
     networks:
       - t2_proxy
-    volumes:
-      - $DOCKERDIR/appdata/speedtest:/config
     environment:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
-      - OOKLA_EULA_GDPR=true
-    logging:
-      driver: "json-file"
-      options:
-          max-file: "10"
-          max-size: "200k"
+      #- APP_DEBUG=true
+      - APP_KEY=$SPEEDTEST_KEY
+      - APP_URL=https://speedtest.$DOMAINNAME_SERVER
+      - ASSET_URL=https://speedtest.$DOMAINNAME_SERVER
+      - DB_CONNECTION=sqlite
+      - SPEEDTEST_SCHEDULE=0 * * * *
+    volumes:
+      - /path/to/speedtest-tracker/data:/config
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
