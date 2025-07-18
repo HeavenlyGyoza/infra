@@ -257,6 +257,22 @@ services:
       - DOMAIN1_PROXIED=TRUE
       - DOCKER_HOST=tcp://socket-proxy:2375
 
+# Cloudflare DDNS - A-Record Auto-Updater
+  cloudflare-ddns:
+    image: favonia/cloudflare-ddns
+    container_name: cf-ddns
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    cap_drop: [all]
+    networks:
+      - default
+    user: "$PUID:$PUID"
+    environment:
+      - CLOUDFLARE_API_TOKEN=$CLOUDFLARE_DNS_API_TOKEN
+      - DOMAINS=$DOMAINNAME_SERVER
+
 ########### MEDIA
 
 # qBittorrent - Torrent Downloader
@@ -805,18 +821,3 @@ services:
     image: qmcgaw/gluetun
     container_name: gluetun
 
-# Cloudflare DDNS - A-Record Auto-Updater
-  cloudflare-ddns:
-    image: favonia/cloudflare-ddns
-    container_name: cf-ddns
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    cap_drop: [all]
-    networks:
-      - default
-    users: "$PUID:$PUID"
-    environment:
-      - CLOUDFLARE_API_TOKEN=$CLOUDFLARE_DNS_API_TOKEN
-      - DOMAINS=$DOMAINNAME_SERVER
