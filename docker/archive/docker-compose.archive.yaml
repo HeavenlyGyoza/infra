@@ -1,0 +1,102 @@
+# Archive of docker images I no longer use
+# Keeping it in case I need to spin up some of them in the future or switch back to them
+
+# MKVToolNix - MKV File Editor
+  mkvtoolnix:
+    image: jlesage/mkvtoolnix
+    container_name: mkvtoolnix
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    volumes:
+      - $DOCKERDIR/appdata/mkvtoolnix:/config
+      - $DATADIR/data/downloads:/storage:rw
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.mkvtoolnix-rtr.entrypoints=websecure"
+      - "traefik.http.routers.mkvtoolnix-rtr.rule=Host(`mkvtoolnix.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.mkvtoolnix-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.mkvtoolnix-rtr.service=mkvtoolnix-svc"
+      - "traefik.http.services.mkvtoolnix-svc.loadbalancer.server.port=5800"
+
+# MKVCleaver - MKV File Extractor
+  mkvcleaver:
+    image: jlesage/mkvcleaver
+    container_name: mkvcleaver
+    networks:
+      - t2_proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    volumes:
+      - $DOCKERDIR/appdata/mkvcleaver:/config
+      - $DATADIR/data/downloads:/storage:rw
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.mkvcleaver-rtr.entrypoints=websecure"
+      - "traefik.http.routers.mkvcleaver-rtr.rule=Host(`mkvcleaver.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.mkvcleaver-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.mkvcleaver-rtr.service=mkvcleaver-svc"
+      - "traefik.http.services.mkvcleaver-svc.loadbalancer.server.port=5800"
+
+# Emby - Media Server
+    emby:
+      image: emby/embyserver
+      container_name: emby
+      restart: unless-stopped
+      networks:
+        - t2_proxy
+      devices:
+        - /dev/dri/card0:/dev/dri/card0
+        - /dev/dri/renderD128:/dev/dri/renderD128
+      security_opt:
+        - no-new-privileges:true
+      environment:
+        UID: $PUID
+        GID: $PGID
+        TZ: $TZ
+      labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.emby-rtr.entrypoints=websecure"
+      - "traefik.http.routers.emby-rtr.rule=Host(`emby.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.emby-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.emby-rtr.service=emby-svc"
+      - "traefik.http.services.emby-svc.loadbalancer.server.port=8096"
+
+# Heimdall - Application dashboard
+  heimdall:
+    image: linuxserver/heimdall
+    container_name: heimdall
+    networks:
+      - t2_proxy
+      - socket_proxy
+    volumes:
+      - $DOCKERDIR/appdata/heimdall:/config
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.heimdall-rtr.entrypoints=websecure"
+      - "traefik.http.routers.heimdall-rtr.rule=Host(`$DOMAINNAME_SERVER`,`www.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.heimdall-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.heimdall-rtr.service=heimdall-svc"
+      - "traefik.http.services.heimdall-svc.loadbalancer.server.port=80"
