@@ -52,7 +52,7 @@ Coming soon™
 - Implement Watchtower for automatic Docker container updates  
 - Deploy Paperless-ngx for document management
 - Use Gluetun container for VPN routing
-- Adding VSCode Server to have a separated dev enviroment
+- Adding VSCode Server to have a separate dev enviroment
 
 ### Network & Security
 
@@ -67,7 +67,7 @@ Coming soon™
 
 ### Miscellaneous
 
-- Improve documentation and add architecture diagrams  
+- Improve documentation and add architecture diagrams
 - Keep adding little projects because it's fun!
 
 ## 🙏 Acknowledgments
@@ -76,7 +76,7 @@ This setup stands on the shoulders of giants. Thanks to the following creators f
 
 - [Jeff Geerling](https://github.com/geerlingguy) — for getting me interested in Infrastructure-as-Code and the fun little projects.
 - [IronicBadger / Perfect Media Server](https://perfectmediaserver.com/) — for detailed explanations in setting up a fully open-source media server and for LSIO.
-- [Anand from SimpleHomelab/SHB](https://www.simplehomelab.com) — for making accessible guides that helped me get the ball rolling
-- [Techno Tim](https://github.com/techno-tim) — for showing how much stuff you can learn by over-engineering your homelab
+- [Anand from SimpleHomelab/SHB](https://www.simplehomelab.com) — for making accessible guides that helped me get the ball rolling.
+- [Techno Tim](https://github.com/techno-tim) — for showing how much stuff you can learn by over-engineering your homelab.
 
 Their work saved me hours and probably my sanity too.
