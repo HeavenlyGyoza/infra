@@ -201,86 +201,44 @@ services:
       - TASKS=1 # Portainer
       - VOLUMES=1 # Portainer
 
-# Portainer - WebUI for Docker containers
-  portainer:
-    container_name: portainer
-    image: portainer/portainer-ce
-    command: -H tcp://socket-proxy:2375
+# Homepage - Application Dashboard
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
     networks:
       - t2_proxy
       - socket_proxy
     volumes:
-      - $DOCKERDIR/appdata/portainer/data:/data
-    restart: always
-    security_opt:
-      - no-new-privileges:true
+      - $DOCKERDIR/appdata/homepage:/app/config
     environment:
-      - TZ=$TZ
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      HOMEPAGE_VAR_DOMAINNAME_SERVER: $DOMAINNAME_SERVER
+      HOMEPAGE_VAR_JELLYFIN_API_KEY: $JELLYFIN_API_KEY
+      HOMEPAGE_VAR_JELLYSEERR_API_KEY: $JELLYSEERR_API_KEY
+      HOMEPAGE_VAR_RADARR_API_KEY: $RADARR_API_KEY
+      HOMEPAGE_VAR_SONARR_API_KEY: $SONARR_API_KEY
+      HOMEPAGE_VAR_PROWLARR_API_KEY: $PROWLARR_API_KEY
+      HOMEPAGE_VAR_BAZARR_API_KEY: $BAZARR_API_KEY
+      HOMEPAGE_VAR_PORTAINER_API_KEY: $PORTAINER_API_KEY
+      HOMEPAGE_VAR_QBITT_USERNAME: $QBITT_USERNAME
+      HOMEPAGE_VAR_QBITT_PW: $QBITT_PW
+      HOMEPAGE_VAR_MEALIE_API_KEY: $MEALIE_API_KEY
     labels:
       - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.portainer-rtr.entrypoints=websecure"
-      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_SERVER`)"
-      ## Middlewares
-      - "traefik.http.routers.portainer-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.portainer-rtr.service=portainer-svc"
-      - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
-
-# Heimdall - Application dashboard
-  heimdall:
-    image: linuxserver/heimdall
-    container_name: heimdall
-    networks:
-      - t2_proxy
-      - socket_proxy
-    volumes:
-      - $DOCKERDIR/appdata/heimdall:/config
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    environment:
-      - PUID=$PUID
-      - PGID=$PGID
-      - TZ=$TZ
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.heimdall-rtr.entrypoints=websecure"
-      - "traefik.http.routers.heimdall-rtr.rule=Host(`$DOMAINNAME_SERVER`,`www.$DOMAINNAME_SERVER`)"
-      ## Middlewares
-      - "traefik.http.routers.heimdall-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.heimdall-rtr.service=heimdall-svc"
-      - "traefik.http.services.heimdall-svc.loadbalancer.server.port=80"
-
-# Dozzle - Real-time Docker Log Viewer
-  dozzle:
-    image: amir20/dozzle
-    container_name: dozzle
-    networks:
-      - t2_proxy
-      - socket_proxy
-    # volumes:
-    #   - /var/run/docker.sock:/var/run/docker.sock
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    environment:
-      DOZZLE_LEVEL: info
-      DOZZLE_TAILSIZE: 300
-      DOZZLE_FILTER: "status=running"
-      DOCKER_HOST: tcp://socket-proxy:2375
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.dozzle-rtr.entrypoints=websecure"
-      - "traefik.http.routers.dozzle-rtr.rule=Host(`dozzle.$DOMAINNAME_SERVER`)"
-      ## Middlewares
-      - "traefik.http.routers.dozzle-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.dozzle-rtr.service=dozzle-svc"
-      - "traefik.http.services.dozzle-svc.loadbalancer.server.port=8080"
+      # HTTP Routers
+      - "traefik.http.routers.homepage-rtr.entrypoints=websecure"
+      - "traefik.http.routers.homepage-rtr.rule=Host(`homepage.$DOMAINNAME_SERVER`)"
+      #- "traefik.http.routers.homepage-rtr.rule=Host(`$DOMAINNAME_SERVER`,`www.$DOMAINNAME_SERVER`)"
+      # Middlewares
+      - "traefik.http.routers.homepage-rtr.middlewares=chain-authelia@file"
+      # HTTP Services
+      - "traefik.http.routers.homepage-rtr.service=homepage-svc"
+      - "traefik.http.services.homepage-svc.loadbalancer.server.port=3000"
 
 # Cloudflare-Companion - Automatic CNAME DNS Creation
   cf-companion:
@@ -517,7 +475,7 @@ services:
       - TZ=$TZ
       - BROWSER_TIMEOUT=200000
       - LOG_LEVEL=INFO
-
+  
 # Jellyseer - Jellyfin Request Manager
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
@@ -546,30 +504,6 @@ services:
 
 ########### UTILITIES
 
-# Uptime Kuma - Uptime monitoring
-  uptime-kuma:
-    image: louislam/uptime-kuma
-    container_name: uptime-kuma
-    networks:
-      - t2_proxy
-      - socket_proxy
-      - default
-    volumes:
-      - $DOCKERDIR/appdata/uptime-kuma:/app/data
-    restart: always
-    security_opt:
-      - no-new-privileges:true
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.uptime-kuma-rtr.entrypoints=websecure"
-      - "traefik.http.routers.uptime-kuma-rtr.rule=Host(`kuma.$DOMAINNAME_SERVER`)"
-      ## Middlewares
-      - "traefik.http.routers.uptime-kuma-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.uptime-kuma-rtr.service=uptime-kuma-svc"
-      - "traefik.http.services.uptime-kuma-svc.loadbalancer.server.port=3001"
-
 # File Browser - Web file browser
   filebrowser:
     image: filebrowser/filebrowser:s6
@@ -595,6 +529,32 @@ services:
       ## HTTP Services
       - "traefik.http.routers.filebrowser-rtr.service=filebrowser-svc"
       - "traefik.http.services.filebrowser-svc.loadbalancer.server.port=80"
+
+########### MONITORING
+
+# Uptime Kuma - Uptime monitoring
+  uptime-kuma:
+    image: louislam/uptime-kuma
+    container_name: uptime-kuma
+    networks:
+      - t2_proxy
+      - socket_proxy
+      - default
+    volumes:
+      - $DOCKERDIR/appdata/uptime-kuma:/app/data
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.uptime-kuma-rtr.entrypoints=websecure"
+      - "traefik.http.routers.uptime-kuma-rtr.rule=Host(`kuma.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.uptime-kuma-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.uptime-kuma-rtr.service=uptime-kuma-svc"
+      - "traefik.http.services.uptime-kuma-svc.loadbalancer.server.port=3001"
 
 # Smokeping - Network latency overwatch
   smokeping:
@@ -665,7 +625,7 @@ services:
     container_name: speedtest-tracker
     restart: unless-stopped
     security_opt:
-    - no-new-privileges:true
+      - no-new-privileges:true
     networks:
       - t2_proxy
     environment:
@@ -707,6 +667,60 @@ services:
     ports:
       - 22:2222 # SSH port
       #- 127.0.0.1:2112:2112 # Prometheus metrics port
+
+# Portainer - WebUI for Docker containers
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce
+    command: -H tcp://socket-proxy:2375
+    networks:
+      - t2_proxy
+      - socket_proxy
+    volumes:
+      - $DOCKERDIR/appdata/portainer/data:/data
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.portainer-rtr.entrypoints=websecure"
+      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.portainer-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.portainer-rtr.service=portainer-svc"
+      - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"
+
+# Dozzle - Real-time Docker Log Viewer
+  dozzle:
+    image: amir20/dozzle
+    container_name: dozzle
+    networks:
+      - t2_proxy
+      - socket_proxy
+    # volumes:
+    #   - /var/run/docker.sock:/var/run/docker.sock
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    environment:
+      DOZZLE_LEVEL: info
+      DOZZLE_TAILSIZE: 300
+      DOZZLE_FILTER: "status=running"
+      DOCKER_HOST: tcp://socket-proxy:2375
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.dozzle-rtr.entrypoints=websecure"
+      - "traefik.http.routers.dozzle-rtr.rule=Host(`dozzle.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.dozzle-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.dozzle-rtr.service=dozzle-svc"
+      - "traefik.http.services.dozzle-svc.loadbalancer.server.port=8080"
 
 
 ########### MISC
@@ -786,135 +800,23 @@ services:
 
 ########### TESTING
 
-# Homepage - Application Dashboard
-  homepage:
-    image: ghcr.io/gethomepage/homepage:latest
-    container_name: homepage
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    networks:
-      - t2_proxy
-      - socket_proxy
-    volumes:
-      - $DOCKERDIR/appdata/homepage:/app/config
-    environment:
-      TZ: $TZ
-      PUID: $PUID
-      PGID: $PGID
-      HOMEPAGE_VAR_DOMAINNAME_SERVER: $DOMAINNAME_SERVER
-      HOMEPAGE_VAR_JELLYFIN_API_KEY: $JELLYFIN_API_KEY
-      HOMEPAGE_VAR_JELLYSEERR_API_KEY: $JELLYSEERR_API_KEY
-      HOMEPAGE_VAR_RADARR_API_KEY: $RADARR_API_KEY
-      HOMEPAGE_VAR_SONARR_API_KEY: $SONARR_API_KEY
-      HOMEPAGE_VAR_PROWLARR_API_KEY: $PROWLARR_API_KEY
-      HOMEPAGE_VAR_BAZARR_API_KEY: $BAZARR_API_KEY
-      HOMEPAGE_VAR_PORTAINER_API_KEY: $PORTAINER_API_KEY
-      HOMEPAGE_VAR_QBITT_USERNAME: $QBITT_USERNAME
-      HOMEPAGE_VAR_QBITT_PW: $QBITT_PW
-      HOMEPAGE_VAR_MEALIE_API_KEY: $MEALIE_API_KEY
-    labels:
-      - "traefik.enable=true"
-      # HTTP Routers
-      - "traefik.http.routers.homepage-rtr.entrypoints=websecure"
-      - "traefik.http.routers.homepage-rtr.rule=Host(`homepage.$DOMAINNAME_SERVER`)"
-      #- "traefik.http.routers.homepage-rtr.rule=Host(`$DOMAINNAME_SERVER`,`www.$DOMAINNAME_SERVER`)"
-      # Middlewares
-      - "traefik.http.routers.homepage-rtr.middlewares=chain-authelia@file"
-      # HTTP Services
-      - "traefik.http.routers.homepage-rtr.service=homepage-svc"
-      - "traefik.http.services.homepage-svc.loadbalancer.server.port=3000"
-
-# Guacamole - Clientless remote desktop
-  guacamole:
-    image: oznu/guacamole
-    container_name: guacamole
-    networks:
-      - t2_proxy
-    volumes:
-      - $DOCKERDIR/appdata/guacamole:/config
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.guacamole-rtr.entrypoints=websecure"
-      - "traefik.http.routers.guacamole-rtr.rule=Host(`guacamole.$DOMAINNAME_SERVER`)"
-      ## Middlewares
-      - "traefik.http.routers.guacamole-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
-      - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
-
-# Guacd - Guacamole Server Daemon
-  guacd:
-    image: guacamole/guacd
-    container_name: guacd
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-
-# Watchtower - Docker Container Auto-Updater
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    restart: unless-stopped
-    networks:
-      - socket_proxy
-
-# OpenSpeedTest - Self-hosted Speed Testing
-  openspeedtest:
-    image: openspeedtest/latest
-    container_name: openspeedtest
-
-# MKVToolNix - MKV File Editor
-  mkvtoolnix:
-    image: jlesage/mkvtoolnix
-    container_name: mkvtoolnix
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    volumes:
-      - $DOCKERDIR/appdata/mkvtoolnix:/config
-      - $DATADIR/data/downloads:/storage:rw
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.mkvtoolnix-rtr.entrypoints=websecure"
-      - "traefik.http.routers.mkvtoolnix-rtr.rule=Host(`mkvtoolnix.$DOMAINNAME_SERVER`)"
-      ## Middlewares
-      - "traefik.http.routers.mkvtoolnix-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.mkvtoolnix-rtr.service=mkvtoolnix-svc"
-      - "traefik.http.services.mkvtoolnix-svc.loadbalancer.server.port=5800"
-
-# MKVCleaver - MKV File Extractor
-  mkvcleaver:
-    image: jlesage/mkvcleaver
-    container_name: mkvcleaver
-    networks:
-      - t2_proxy
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-    volumes:
-      - $DOCKERDIR/appdata/mkvcleaver:/config
-      - $DATADIR/data/downloads:/storage:rw
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.mkvcleaver-rtr.entrypoints=websecure"
-      - "traefik.http.routers.mkvcleaver-rtr.rule=Host(`mkvcleaver.$DOMAINNAME_SERVER`)"
-      ## Middlewares
-      - "traefik.http.routers.mkvcleaver-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.mkvcleaver-rtr.service=mkvcleaver-svc"
-      - "traefik.http.services.mkvcleaver-svc.loadbalancer.server.port=5800"
-
 # Gluetun - VPN
   gluetun:
     image: qmcgaw/gluetun
     container_name: gluetun
+
+# Cloudflare DDNS - A-Record Auto-Updater
+  cloudflare-ddns:
+    image: favonia/cloudflare-ddns
+    container_name: cf-ddns
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    cap_drop: [all]
+    networks:
+      - default
+    users: "$PUID:$PUID"
+    environment:
+      - CLOUDFLARE_API_TOKEN=$CLOUDFLARE_DNS_API_TOKEN
+      - DOMAINS=$DOMAINNAME_SERVER
