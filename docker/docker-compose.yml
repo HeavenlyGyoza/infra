@@ -316,7 +316,6 @@ services:
       - $DATADIR/data/media/movies:/data/movies
       - $DATADIR/data/media/series:/data/series
       - $DATADIR/data/media/anime:/data/anime
-      - $DATADIR/temp/appdata/jellyfin/metadata:/config/metadata
     devices:
       - /dev/dri:/dev/dri
     security_opt:
@@ -512,7 +511,7 @@ services:
       - "traefik.http.routers.jellyseerr-rtr.entrypoints=websecure"
       - "traefik.http.routers.jellyseerr-rtr.rule=Host(`jellyseerr.$DOMAINNAME_SERVER`)"
       ## Middlewares
-      - "traefik.http.routers.jellyseerr-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.jellyseerr-rtr.middlewares=chain-no-auth@file"
       ## HTTP Services
       - "traefik.http.routers.jellyseerr-rtr.service=jellyseerr-svc"
       - "traefik.http.services.jellyseerr-svc.loadbalancer.server.port=5055"
