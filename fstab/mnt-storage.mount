@@ -1,8 +1,8 @@
   GNU nano 6.2                                  mnt-storage.mount *
 [Unit]
 Description=Mount mergerfs pool (/mnt/storage)
-Requires=mnt-disk1.mount mnt-disk2.mount mnt-disk3.mount
-After=mnt-disk1.mount mnt-disk2.mount mnt-disk3.mount
+Requires=mnt-disk1.mount mnt-disk2.mount mnt-disk3.mount mnt-disk4.mount
+After=mnt-disk1.mount mnt-disk2.mount mnt-disk3.mount mnt.disk4.mount
 
 [Mount]
 What=/mnt/disk*

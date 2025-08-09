@@ -1,0 +1,12 @@
+[Unit]
+Description=Mount mergerfs disk4 (/mnt/disk4)
+
+[Mount]
+What=/dev/disk/by-uuid/d9dc6681-d176-4735-8590-060385ce8e92
+Where=/mnt/disk4
+Type=ext4
+Options=defaults,rw,noatime,nofail
+TimeoutSec=10s
+
+[Install]
+WantedBy=multi-user.target
