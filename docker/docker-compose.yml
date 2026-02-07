@@ -801,12 +801,11 @@ services:
       SNOOPER_ENABLED: "FALSE"
       MOD_PLATFORM: "AUTO_CURSEFORGE"
       CF_API_KEY: ${CF_API_KEY}
-      CF_SLUG: "prominence-2-rpg"
+      CF_SLUG: "prominence-2-hasturian-era"
       CF_FORCE_SYNCHRONIZE: "TRUE"
       CF_EXCLUDE_MODS: |
          simple-discord-rpc
       CURSEFORGE_FILES: |
-        craterlib@2.0.3
         luna
         chunky-pregenerator
     volumes:
