@@ -813,3 +813,32 @@ services:
     volumes:
         - $MINECRAFTDIR/forge/data:/data
         - $MINECRAFTDIR/forge/data/mods:/mods
+
+# Minecraft - Vanilla Server
+  mc-vanilla:
+    image: itzg/minecraft-server:java25-graalvm
+    container_name: minecraft-vanilla
+    restart: unless-stopped
+    networks:
+      - default
+    ports:
+      - "25566:25565"
+    environment:
+      EULA: "TRUE"
+      VERSION: "1.21.10"
+      MODE: "SURVIVAL"
+      DIFFICULTY: "HARD"
+      ALLOW_FLIGHT: "TRUE"
+      VIEW_DISTANCE: "12"
+      SIMULATION_DISTANCE: "12"
+      INIT_MEMORY: "1G"
+      MAX_MEMORY: "6G"
+      USE_MEOWICE_FLAGS: "TRUE"
+      USE_MEOWICE_GRAALVM_FLAGS: "TRUE"
+      ONLINE_MODE: "TRUE"
+      ENABLE_WHITELIST: "TRUE"
+      SNOOPER_ENABLED: "FALSE"
+      MODPACK_PLATFORM: MODRINTH
+      MODRINTH_MODPACK: sop # Simply Optimized
+    volumes:
+      - $MINECRAFTDIR/servers/vanilla_optimized:/data
