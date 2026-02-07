@@ -217,6 +217,7 @@ services:
       TZ: $TZ
       PUID: $PUID
       PGID: $PGID
+      HOMEPAGE_ALLOWED_HOSTS: homepage.${DOMAINNAME_SERVER}
       HOMEPAGE_VAR_DOMAINNAME_SERVER: $DOMAINNAME_SERVER
       HOMEPAGE_VAR_JELLYFIN_API_KEY: $JELLYFIN_API_KEY
       HOMEPAGE_VAR_JELLYSEERR_API_KEY: $JELLYSEERR_API_KEY
@@ -812,12 +813,3 @@ services:
     volumes:
         - $MINECRAFTDIR/forge/data:/data
         - $MINECRAFTDIR/forge/data/mods:/mods
-
-
-########### TESTING
-
-# Gluetun - VPN
-  gluetun:
-    image: qmcgaw/gluetun
-    container_name: gluetun
-
