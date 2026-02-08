@@ -291,7 +291,7 @@ services:
     networks:
       - t3_proxy
     volumes:
-      - $DOCKERDIR/appdata/qbittorent/config:/config
+      - $DOCKERDIR/appdata/qbittorrent/config:/config
       - $DATADIR/data/downloads:/data/downloads
     security_opt:
       - no-new-privileges:true
