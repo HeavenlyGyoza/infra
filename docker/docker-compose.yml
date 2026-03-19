@@ -284,35 +284,64 @@ services:
 
 ########### MEDIA
 
-# qBittorrent - Torrent Downloader
-  qbittorrent:
-    container_name: qbittorrent
-    image: linuxserver/qbittorrent
+# Gluetun - VPN Gateway with Automatic Port Forwarding for Containers
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     networks:
       - t3_proxy
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - 8080:8080/tcp
+    volumes:
+      - $DOCKERDIR/appdata/gluetun:/gluetun
+    environment:
+      - TZ=$TZ
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=$WIREGUARD_PRIVATE_KEY
+      - PORT_FORWARD_ONLY=on # Use only P2P-enabled servers
+      - VPN_PORT_FORWARDING=on
+      - VPN_PORT_FORWARDING_UP_COMMAND=/bin/sh -c 'wget -O- --retry-connrefused --post-data "json={\"listen_port\":{{PORTS}}}" http://127.0.0.1:8080/api/v2/app/setPreferences 2>&1'
+      - SERVER_COUNTRIES=$SERVER_COUNTRIES
+      - UPDATER_PERIOD=24h
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.gluetun-qbittorrent-rtr.entrypoints=websecure"
+      - "traefik.http.routers.gluetun-qbittorrent-rtr.rule=Host(`qbitt.$DOMAINNAME_SERVER`)" #qBittorrent
+      ## Middlewares
+      - "traefik.http.routers.gluetun-qbittorrent-rtr.middlewares=chain-authelia@file" #qBittorrent
+      ## HTTP Services
+      - "traefik.http.routers.gluetun-qbittorrent-rtr.service=gluetun-svc" #qBittorrent
+      - "traefik.http.services.gluetun-svc.loadbalancer.server.port=8080" #qBittorrent
+
+
+# qBittorrent - Torrent Downloader
+  qbittorrent-gt:
+    container_name: qbittorrent-gt
+    image: linuxserver/qbittorrent
+    network_mode: "service:gluetun"
+    depends_on:
+      gluetun:
+        condition: service_healthy # Checks VPN is connected to avoid a race
     volumes:
       - $DOCKERDIR/appdata/qbittorrent/config:/config
       - $DATADIR/data/downloads:/data/downloads
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
-    ports:
-      - 6881:6881
     environment:
       - PUID=$PUID
       - PGID=$PGID
       - TZ=$TZ
-      #- WEBUI_PORT=8080
-    labels:
-      - "traefik.enable=true"
-      ## HTTP Routers
-      - "traefik.http.routers.qbittorrent-rtr.entrypoints=websecure"
-      - "traefik.http.routers.qbittorrent-rtr.rule=Host(`qbitt.$DOMAINNAME_SERVER`)"
-      ## Middlewares
-      - "traefik.http.routers.qbittorrent-rtr.middlewares=chain-authelia@file"
-      ## HTTP Services
-      - "traefik.http.routers.qbittorrent-rtr.service=qbittorrent-svc"
-      - "traefik.http.services.qbittorrent-svc.loadbalancer.server.port=8080"
+      - WEBUI_PORT=8080
 
 # Jellyfin - Media server
   jellyfin:
