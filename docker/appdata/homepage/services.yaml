@@ -26,6 +26,51 @@
             env: 1
             key: {{HOMEPAGE_VAR_PORTAINER_API_KEY}}
 
+    - Adguard Home:
+        icon: adguard-home.svg
+        href : https://adguard.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: DNS Sink Ad-blocker
+        # widget:
+        #     type: adguard
+        #     url: http://adguard.host.or.ip
+        #     username: admin
+        #     password: password
+
+    - Glances:
+        icon: glances.svg
+        description: System monitoring
+        widget:
+            type: glances
+            url: http://glances:61208
+            # username: user # optional if auth enabled in Glances
+            # password: pass # optional if auth enabled in Glances
+            version: 4 # required only if running glances v4 or higher, defaults to 3
+            metric: cpu
+            diskUnits: bytes # optional, bytes (default) or bbytes. Only applies to disk
+            refreshInterval: 5000 # optional - in milliseconds, defaults to 1000 or more, depending on the metric
+            pointsLimit: 15 # optional, defaults to 15
+
+    - Calibre Web Automated:
+        icon: calibre.svg
+        url: https://href.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        widget:
+            type: calibreweb
+            url: http://calibre:8083
+            username: username
+            password: password
+
+    - Beszel:
+        icon: beszel.svg
+        href : https://beszel.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Monitoring dashboard
+        widget:
+            type: beszel
+            url: http://beszel:8090
+            # username: username # email
+            # password: password
+            # systemId: systemId # optional
+            version: 2 # optional, default is 1
+
 - MEDIA:
     - Jellyfin:
         icon: jellyfin.svg
@@ -56,7 +101,7 @@
         description: Torrent client
         widget:
           type: qbittorrent
-          url: http://qbittorrent:8080
+          url: http://gluetun:8080 # qBittorrent only reachable through gluetun
           username: {{HOMEPAGE_VAR_QBITT_USERNAME}}
           password: {{HOMEPAGE_VAR_QBITT_PW}}
 
@@ -121,7 +166,7 @@
             url: http://scrutiny:8080
 
     - Speedtest Tracker:
-        icon: speedtest-tracker-old.png
+        icon: ookla-speedtest.png
         href: https://speedtest.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Speedtest monitoring
         widget:
@@ -134,9 +179,22 @@
         description: Web file managing interface
 
     - Smokeping:
-        icon: smokeping.png
+        icon: smokeping.webp
         href: https://smokeping.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
         description: Network latency monitoring
+
+    - Gatus:
+        icon: gatus.svg
+        href: https://gatus.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: Health and uptime monitoring
+        widget:
+            type: gatus
+            url: http://gatus:8080
+
+    - Stirling PDF:
+        icon: stirling-pdf.svg
+        href: https://pdf.{{HOMEPAGE_VAR_DOMAINNAME_SERVER}}
+        description: PDF management suite
 
 
 - MISC: 
@@ -150,9 +208,16 @@
           key: {{HOMEPAGE_VAR_MEALIE_API_KEY}}
 
 - GAME SERVERS:
-    - Minecraft:
+    - Minecraft [Prominence II]:
         icon: minecraft.svg
-        description: Modded server
+        description: Modded 1.20.1 server
         widget:
           type: minecraft
-          url: tcp://minecraft:25565
+          url: udp://{{HOMEPAGE_VAR_HOST_IP}}:25565
+
+    - Minecraft [Vanilla]:
+        icon: minecraft.svg
+        description: Vanilla optimized 1.21.1 server
+        widget:
+          type: minecraft
+          url: udp://{{HOMEPAGE_VAR_HOST_IP}}:25566

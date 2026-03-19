@@ -1,0 +1,7 @@
+endpoints:
+  - name: jellyfin
+    group: core
+    url: "https://jellyfin.angrybuddha.org"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
