@@ -18,6 +18,16 @@ networks:
     ipam:
       config:
         - subnet: 192.168.91.0/24
+  dockervlan:
+    name: dockervlan
+    driver: macvlan
+    driver_opts:
+      parent: eno1
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          ip_range: 192.168.1.225/32
+          gateway: 192.168.1.1
 
 ########################### SECRETS
 secrets:
@@ -281,6 +291,31 @@ services:
     environment:
       - CLOUDFLARE_API_TOKEN=$CLOUDFLARE_DNS_API_TOKEN
       - DOMAINS=$DOMAINNAME_SERVER
+
+# Adguard Home - DNS Sinkhole Ad-blocker
+  adguard-home:
+    image: adguard/adguardhome
+    container_name: adguard-home
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      dockervlan:
+        ipv4_address: 192.168.1.225  # Adguard complains about static IP as DHCP server
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "53:53/tcp" # DNS
+      - "53:53/udp"
+      - "67:67/tcp" # DHCP
+      - "67:67/udp"
+      - "68:68/tcp" # DHCP
+      - "68:68/udp"
+      - "3000:3000"
+    volumes:
+      - $DOCKERDIR/appdata/adguard/workdir:/opt/adguardhome/work
+      - $DOCKERDIR/appdata/adguard/confdir:/opt/adguardhome/conf
+
 
 ########### MEDIA
 
