@@ -833,6 +833,37 @@ services:
       - "traefik.http.routers.mealie-rtr.service=mealie-svc"
       - "traefik.http.services.mealie-svc.loadbalancer.server.port=9000"
 
+# Stirling PDF - PDF Management Suite
+  stirling-pdf:
+    image: stirlingtools/stirling-pdf
+    container_name: stirling-pdf
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - t3_proxy
+    volumes:
+      - $DOCKERDIR/appdata/stirling/tessdata:/usr/share/tessdata    # OCR language files
+      - $DOCKERDIR/appdata/stirling/configs:/configs                 # Settings & database
+      - $DOCKERDIR/appdata/stirling/logs:/logs                       # Application logs
+      - $DOCKERDIR/appdata/stirling/customFiles:/customFiles:rw      # Custom branding files
+      - $DOCKERDIR/appdata/stirling/pipeline:/pipeline               # Automation configs
+    environment:
+      - TZ=$TZ
+      - SECURITY_ENABLELOGIN=false
+      - SYSTEM_DEFAULTLOCALE=en-US
+      - LANGS=es_ES
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.stirling-rtr.entrypoints=websecure"
+      - "traefik.http.routers.stirling-rtr.rule=Host(`pdf.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.stirling-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.stirling-rtr.service=stirling-svc"
+      - "traefik.http.services.stirling-svc.loadbalancer.server.port=8080"
+
 
 ########### GAME SERVERS
 
