@@ -100,3 +100,33 @@
       ## HTTP Services
       - "traefik.http.routers.heimdall-rtr.service=heimdall-svc"
       - "traefik.http.services.heimdall-svc.loadbalancer.server.port=80"
+
+# qBittorrent - Torrent Downloader
+  qbittorrent:
+    container_name: qbittorrent
+    image: linuxserver/qbittorrent
+    networks:
+      - t3_proxy
+    volumes:
+      - $DOCKERDIR/appdata/qbittorrent/config:/config
+      - $DATADIR/data/downloads:/data/downloads
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    ports:
+      - 6881:6881
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+      #- WEBUI_PORT=8080
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.qbittorrent-rtr.entrypoints=websecure"
+      - "traefik.http.routers.qbittorrent-rtr.rule=Host(`qbitt.$DOMAINNAME_SERVER`)"
+      ## Middlewares
+      - "traefik.http.routers.qbittorrent-rtr.middlewares=chain-authelia@file"
+      ## HTTP Services
+      - "traefik.http.routers.qbittorrent-rtr.service=qbittorrent-svc"
+      - "traefik.http.services.qbittorrent-svc.loadbalancer.server.port=8080"
