@@ -688,6 +688,7 @@ services:
       - "/dev/sdb"
       - "/dev/sdc"
       - "/dev/sdd"
+      - "/dev/sde"
     labels:
       - "traefik.enable=true"
       ## HTTP Routers
