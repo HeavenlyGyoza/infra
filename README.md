@@ -2,81 +2,86 @@
 
 ![Docker](https://img.shields.io/badge/docker-%232496ED.svg?style=flat&logo=docker&logoColor=white)
 [![Ubuntu](https://img.shields.io/badge/OS-Ubuntu-orange)](https://ubuntu.com/)
-![Services](https://img.shields.io/badge/services-28-brightgreen)
 ![Uptime](https://img.shields.io/badge/uptime-yes-brightgreen)
 
 ---
 
-## 📌 Overview
+## Overview
 
-This repo contains the configuration files and scripts necessary to setup and deploy my homelab using Docker Compose in a Ubuntu server. The whole thing follows IaC principles so I can get consistent results every time without fuss. 
+This repo contains the files and configurations for my self-hosted infrastructure running on Ubuntu Server using Docker Compose.
 
-***Now with up to 75% less secrets accidentaly commited to GitHub!***
+The stack focuses on:
 
----
+- centralized ingress and authentication
+- container isolation and security
+- service observability
+- reproducible deployments
 
-## 🛠️ Stack Components
-
-- **Reverse Proxy:** Traefik 2
-- **Authentication:** Authelia as SSO and 2FA
-- **Security:** Docker socket proxy, Docker Secrets
-- **Media Services:** Jellyfin and the *arr stack
-- **Monitoring Tools:** Uptime Kuma, Scrutiny, and Dozzle
-- **Utilities:** Filebrowser, SSH Honeypot, Mealie
-- **Game Server:** Containerized modded MP Minecraft server
----
-
-## 🖥️ System Configuration
-
-- **Mount Units:** Individual systemd mount units for external drives (alternative to `/etc/fstab` due to using an external drive enclosure)
-- **Bash Aliases:** Custom aliases for streamlined terminal usage
-- **SSH Security:** SSH access secured with an ed25519 public key
+The environment hosts media services, monitoring tools, infrastructure utilities and development-related workloads. 
 
 ---
 
-## 🚀 Setting this up
+## Components
 
-Coming soon™
+### Networking & Access
+- **Traefik 3 as Reverse Proxy**
+- **Centralized Authethincation with Authelia (SSO+2FA)**
+- **Automatic HTTPS with Let's Encxrypt and dynamic routing**
 
-## 🛠️ TODO / Roadmap
+### Security
+- **Docker Socket isolation with socket proxy**
+- **Docker Secrets, isolated networks, restricted SSH access**
 
-### Infrastructure & Automation
+### Observability
+- **Service uptime monitoring with Uptime Kuma**
+- **Container log inspection with Dozzle**
+- **Resource usage with Beszel**
+- **Disk health monitoring with Scrutiny**
+- **Network monitoring with Smokeping, Speedtest Tracker**
 
-- Automate full deployment using Ansible playbooks and Terraform
-- Explore switching to Proxmox for better separation
-- Experiment with k3s Kubernetes cluster across VMs for lightweight container orchestration and HA
+### Services
+- **Media server stack (Jellyfin, \*arr suite, qBittorrent,Jellyseer, Calibre, etc)**
+- **File management and utilities (Filebrowser, Portainer)**
+- **Self-hosted DNS Ad-blocker (Adguard Home)**
+- **Containerized Game Servers (Minecraft)**
+- **Additional self-hosted applications (Mealie, Stirling PDF)**
 
-### Docker Stack Expansion
+### System Configuration
 
-- Replace Heimdall to Homepage and Kuma to Gatus to further have everything as code instead of GUI configs
-- Implement Watchtower for automatic Docker container updates  
-- Deploy Paperless-ngx for document management
-- Use Gluetun container for VPN routing
-- Adding VSCode Server to have a separate dev enviroment
+- Ubuntu-based host
+- Systemd mount units for external drives
+- Shell aliases for ease of use
 
-### Network & Security
+---
 
-- Set up Pi-hole with Unbound for local DNS filtering and privacy  
-- Integrate Tailscale to expose less services to the internet and have smaller attack surface 
-- Adding CrowdSec to bounce malicious traffic
-- Deploy OPNSense as a firewall/router to deepen networking knowledge and improve network security
+## Roadmanp
 
-### Monitoring & Visualization
+### Infrastructure
 
-- Deploy Prometheus and Grafana for detailed system and app metrics and dashboards  
+- Provisioning automation with Ansible and Terraform
+- Migration to Proxmox VE for better separation
+- VPN-based access through Tailscale
+- Move some services to declarative alternatives (Kuma -> Gatus, Heimdall -> Homepage)
 
-### Miscellaneous
+### Security & Networking
 
-- Improve documentation and add architecture diagrams
-- Keep adding little projects because it's fun!
+- VPN-based access through Tailscale
+- CrowdSec integration with Traefik
+- Unbound with Valkey in-memory cache for recursive DNS
+- Deploy OPNsense as firewall
 
-## 🙏 Acknowledgments
+### Documentation
 
-This setup stands on the shoulders of giants. Thanks to the following creators for their invaluable guides, tools, and inspiration:
+- Architecture diagrams
+- Deployment docs
+- Network topology overview
 
-- [Jeff Geerling](https://github.com/geerlingguy) — for getting me interested in Infrastructure-as-Code and the fun little projects.
-- [IronicBadger / Perfect Media Server](https://perfectmediaserver.com/) — for detailed explanations in setting up a fully open-source media server and for LSIO.
-- [Anand from SimpleHomelab/SHB](https://www.simplehomelab.com) — for making accessible guides that helped me get the ball rolling.
-- [Techno Tim](https://github.com/techno-tim) — for showing how much stuff you can learn by over-engineering your homelab.
 
-Their work saved me hours and probably my sanity too.
+## Acknowledgments
+
+Resources and creators that inspired and influenced this project:
+
+- [Jeff Geerling](https://github.com/geerlingguy)
+- [IronicBadger / Perfect Media Server](https://perfectmediaserver.com/)
+- [Anand from SimpleHomelab/SHB](https://www.simplehomelab.com)
+- [Techno Tim](https://github.com/techno-tim)
